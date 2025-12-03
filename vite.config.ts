@@ -24,7 +24,8 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
           'cross-fetch': 'cross-fetch/dist/browser-ponyfill.js',
-          'eventemitter2': 'eventemitter2/lib/eventemitter2.js'
+          'eventemitter2': 'eventemitter2/lib/eventemitter2.js',
+          'socket.io-client': 'socket.io-client/dist/socket.io.js'
         }
       }
     };
