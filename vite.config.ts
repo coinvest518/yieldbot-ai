@@ -23,7 +23,8 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
-          'cross-fetch': 'cross-fetch/dist/browser-ponyfill.js'
+          'cross-fetch': 'cross-fetch/dist/browser-ponyfill.js',
+          'eventemitter2': 'eventemitter2/lib/eventemitter2.js'
         }
       }
     };
