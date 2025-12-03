@@ -16,11 +16,14 @@ export default defineConfig(({ mode }) => {
         'import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY': JSON.stringify(env.VITE_GOOGLE_GENERATIVE_AI_API_KEY || env.GOOGLE_GENERATIVE_AI_API_KEY),
         'process.env.GOOGLE_GENERATIVE_AI_API_KEY': JSON.stringify(env.VITE_GOOGLE_GENERATIVE_AI_API_KEY || env.GOOGLE_GENERATIVE_AI_API_KEY),
         // Legacy support
-        'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GOOGLE_GENERATIVE_AI_API_KEY || env.GOOGLE_GENERATIVE_AI_API_KEY)
+        'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GOOGLE_GENERATIVE_AI_API_KEY || env.GOOGLE_GENERATIVE_AI_API_KEY),
+        // Provide global fetch for cross-fetch compatibility
+        global: 'globalThis'
       },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
+          'cross-fetch': 'cross-fetch/dist/browser-ponyfill.js'
         }
       }
     };
