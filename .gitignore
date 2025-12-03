@@ -1,0 +1,76 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+dist-ssr
+build
+*.local
+
+# ============ SENSITIVE FILES - NEVER COMMIT! ============
+.env
+.env.local
+.env.development
+.env.production
+.env*.local
+
+# Private keys and secrets
+*.pem
+*.key
+*.secret
+secrets/
+
+# ============ SMART CONTRACT BUILD ARTIFACTS ============
+# Hardhat
+artifacts/
+cache/
+typechain/
+typechain-types/
+
+# Foundry
+out/
+forge-cache/
+
+# Contract ABIs (regenerate from source)
+# Keep contracts/ source files, exclude compiled outputs
+
+# ============ EDITOR & OS FILES ============
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db
+
+# ============ TESTING & COVERAGE ============
+coverage/
+coverage.json
+.nyc_output/
+
+# ============ MISC ============
+*.tsbuildinfo
+.eslintcache
+.vercel
+
+# Generated metadata (can regenerate)
+scripts/output/
+scripts/cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

@@ -1,0 +1,743 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-07-18",
+  "description": "Complete yield strategy data for YBOT Vault including contract addresses, APIs, and live data endpoints",
+  
+  "strategies": {
+    "strategy1_safeLending": {
+      "name": "Safe Lending (Venus Protocol)",
+      "description": "Low-risk lending on Venus Protocol - supply assets to earn interest plus XVS rewards",
+      "riskLevel": "low",
+      "expectedAPY": {
+        "min": 2,
+        "max": 6,
+        "typical": 4,
+        "description": "Base lending APY + XVS rewards (for Prime users up to 12%)"
+      },
+      "protocols": ["Venus Protocol"],
+      "supportedAssets": ["USDT", "USDC", "BNB", "BTCB", "ETH", "FDUSD"],
+      
+      "contracts": {
+        "bscMainnet": {
+          "chainId": 56,
+          "comptroller": "0xfD36E2c2a6789Db23113685031d7F16329158384",
+          "swapRouter": "0x8938E6dA30b59c1E27d5f70a94688A89F7c815a4",
+          "xvsToken": "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63",
+          "xvsVault": "0x051100480289e704d20e9DB4804837068f3f9204",
+          "prime": "0xBbCD063efE506c3D42a0Fa2dB5C08430288C71FC",
+          "resilientOracle": "0x6592b5DE802159F3E74B2486b091D11a8256ab8A",
+          
+          "vTokens": {
+            "vUSDT": {
+              "address": "0xfD5840Cd36d94D7229439859C0112a4185BC0255",
+              "underlying": "0x55d398326f99059fF775485246999027B3197955",
+              "decimals": 8,
+              "underlyingDecimals": 18
+            },
+            "vUSDC": {
+              "address": "0xecA88125a5ADbe82614ffC12D0DB554E2e2867C8",
+              "underlying": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+              "decimals": 8,
+              "underlyingDecimals": 18
+            },
+            "vBNB": {
+              "address": "0xA07c5b74C9B40447a954e1466938b865b6BBea36",
+              "underlying": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+              "decimals": 8,
+              "underlyingDecimals": 18,
+              "isNative": true
+            },
+            "vBTC": {
+              "address": "0x882C173bC7Ff3b7786CA16dfeD3DFFfb9Ee7847B",
+              "underlying": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+              "decimals": 8,
+              "underlyingDecimals": 18
+            },
+            "vETH": {
+              "address": "0xf508fCD89b8bd15579dc79A6827cB4686A3592c8",
+              "underlying": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+              "decimals": 8,
+              "underlyingDecimals": 18
+            },
+            "vFDUSD": {
+              "address": "0xC4eF4229FEc74Ccfe17B2bdeF7715fAC740BA0ba",
+              "underlying": "0xc5f0f7b66764F6ec8C8Dff7BA683102295E16409",
+              "decimals": 8,
+              "underlyingDecimals": 18
+            }
+          }
+        },
+        
+        "bscTestnet": {
+          "chainId": 97,
+          "comptroller": "0x94d1820b2D1c7c7452A163983Dc888CEC546b77D",
+          "swapRouter": "0x83edf1deE1B730b7e8e13C00ba76027D63a51ac0",
+          "xvsToken": "0xB9e0E753630434d7863528cc73CB7AC638a7c8ff",
+          "xvsVault": "0x9aB56bAD2D7631B2A857ccf36d998232A8b82280",
+          "prime": "0xe840F8EC2Dc50E7D22e5e2991975b9F6e34b62Ad",
+          "resilientOracle": "0x3cD69251D04A28d887Ac14cbe2E14c52F3D57823",
+          
+          "vTokens": {
+            "vUSDT": {
+              "address": "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A",
+              "underlying": "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c",
+              "decimals": 8,
+              "underlyingDecimals": 18
+            },
+            "vUSDC": {
+              "address": "0xD5C4C2e2facBEB59D0216D0595d63FcDc6F9A1a7",
+              "underlying": "0x16227D60f7a0e586C66B005219dfc887D13C9531",
+              "decimals": 8,
+              "underlyingDecimals": 18
+            },
+            "vBNB": {
+              "address": "0x2E7222e51c0f6e98610A1543Aa3836E092CDe62c",
+              "underlying": "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
+              "decimals": 8,
+              "underlyingDecimals": 18,
+              "isNative": true
+            }
+          }
+        }
+      },
+      
+      "topPools": [
+        {
+          "pool": "USDT Core Pool",
+          "asset": "USDT",
+          "supplyAPY": 2.89,
+          "primeAPY": 11.64,
+          "totalSupply": "263570000",
+          "utilization": 60.2,
+          "riskScore": "A"
+        },
+        {
+          "pool": "USDC Core Pool",
+          "asset": "USDC",
+          "supplyAPY": 3.06,
+          "primeAPY": 8.78,
+          "totalSupply": "82320000",
+          "utilization": 64.3,
+          "riskScore": "A"
+        },
+        {
+          "pool": "BNB Core Pool",
+          "asset": "BNB",
+          "supplyAPY": 0.96,
+          "xvsRewardAPY": 0.5,
+          "totalSupply": "399460000",
+          "utilization": 66.2,
+          "riskScore": "A+"
+        },
+        {
+          "pool": "FDUSD Core Pool",
+          "asset": "FDUSD",
+          "supplyAPY": 4.2,
+          "boosted": true,
+          "totalSupply": "45000000",
+          "utilization": 55.0,
+          "riskScore": "A"
+        }
+      ]
+    },
+    
+    "strategy2_stablecoinLP": {
+      "name": "Stablecoin LP Farming (PancakeSwap)",
+      "description": "Medium-risk LP farming with stablecoin pairs - lower impermanent loss risk",
+      "riskLevel": "medium",
+      "expectedAPY": {
+        "min": 8,
+        "max": 20,
+        "typical": 12,
+        "description": "Trading fees + CAKE rewards (auto-compounded via Beefy)"
+      },
+      "protocols": ["PancakeSwap V3", "Beefy Finance"],
+      "supportedAssets": ["USDT-USDC", "USDT-BUSD", "FDUSD-USDT", "DAI-USDT"],
+      
+      "contracts": {
+        "bscMainnet": {
+          "chainId": 56,
+          
+          "pancakeSwap": {
+            "factoryV3": "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
+            "poolDeployer": "0x41ff9AA7e16B8B1a8a8dc4f0eFacd93D02d071c9",
+            "swapRouterV3": "0x1b81D678ffb9C0263b24A97847620C99d213eB14",
+            "smartRouter": "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4",
+            "nonfungiblePositionManager": "0x46A15B0b27311cedF172AB29E4f4766fbE7F4364",
+            "quoterV2": "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+            "masterChefV3": "0x556B9306565093C855AEA9AE92A594704c2Cd59e",
+            "cakeToken": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+            
+            "v3Migrator": "0xbC203d7f83677c7ed3F7acEc959963E7F4ECC5C2",
+            "tickLens": "0x9a489505a00cE272eAa5e07Dba6491314CaE3796"
+          },
+          
+          "beefy": {
+            "vaultFactory": "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
+            "strategyFactory": "0x97d0bE2a72fc4Db90eD9Dbc2Ea7F03B4968f6938",
+            "beefyToken": "0xCa3F508B8e4Dd382eE878A314789373D80A5190A",
+            "rewardPool": "0x453D4Ba9a2D594314DF88564248497F7D74d6b2C"
+          },
+          
+          "stablecoinPools": {
+            "USDT_USDC_100": {
+              "poolAddress": "0x92b7807bF19b7DDdf89b706143896d05228f3121",
+              "token0": "0x55d398326f99059fF775485246999027B3197955",
+              "token1": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+              "fee": 100,
+              "tickSpacing": 1
+            },
+            "USDT_BUSD_100": {
+              "poolAddress": "0x36842F8fb99D55477C0Da638aF5ceb6bBf86aA98",
+              "token0": "0x55d398326f99059fF775485246999027B3197955",
+              "token1": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+              "fee": 100,
+              "tickSpacing": 1
+            },
+            "FDUSD_USDT_100": {
+              "poolAddress": "0x6EB9A78a1a97A6dfB4e7f34D13428d5A4B2A6f5F",
+              "token0": "0xc5f0f7b66764F6ec8C8Dff7BA683102295E16409",
+              "token1": "0x55d398326f99059fF775485246999027B3197955",
+              "fee": 100,
+              "tickSpacing": 1
+            }
+          }
+        },
+        
+        "bscTestnet": {
+          "chainId": 97,
+          
+          "pancakeSwap": {
+            "swapRouterV3": "0x1b81D678ffb9C0263b24A97847620C99d213eB14",
+            "smartRouter": "0x9a489505a00cE272eAa5e07Dba6491314CaE3796",
+            "nonfungiblePositionManager": "0x427bF5b37357632377eCbEC9de3626C71A5396c1",
+            "quoterV2": "0xbC203d7f83677c7ed3F7acEc959963E7F4ECC5C2",
+            "masterChefV3": "0x4c650FB471fe4e0f476fD3437C3411B1122c4e3B"
+          }
+        }
+      },
+      
+      "topPools": [
+        {
+          "pool": "USDT-USDC 0.01%",
+          "pair": "USDT/USDC",
+          "fee": "0.01%",
+          "tvl": "45000000",
+          "apr": 12.5,
+          "cakeAPR": 8.2,
+          "feeAPR": 4.3,
+          "volume24h": "15000000",
+          "impermanentLossRisk": "Very Low"
+        },
+        {
+          "pool": "USDT-BUSD 0.01%",
+          "pair": "USDT/BUSD",
+          "fee": "0.01%",
+          "tvl": "28000000",
+          "apr": 10.8,
+          "cakeAPR": 6.5,
+          "feeAPR": 4.3,
+          "volume24h": "8500000",
+          "impermanentLossRisk": "Very Low"
+        },
+        {
+          "pool": "FDUSD-USDT 0.01%",
+          "pair": "FDUSD/USDT",
+          "fee": "0.01%",
+          "tvl": "18000000",
+          "apr": 15.2,
+          "cakeAPR": 10.5,
+          "feeAPR": 4.7,
+          "volume24h": "12000000",
+          "impermanentLossRisk": "Very Low"
+        }
+      ],
+      
+      "beefyVaults": [
+        {
+          "name": "PancakeSwap USDT-USDC",
+          "id": "cakev3-bsc-usdt-usdc-0.01",
+          "apy": 14.8,
+          "tvl": "12500000",
+          "strategy": "Auto-compound CAKE rewards",
+          "platform": "PancakeSwap"
+        },
+        {
+          "name": "Venus USDT",
+          "id": "venus-usdt",
+          "apy": 4.2,
+          "tvl": "8200000",
+          "strategy": "Auto-compound XVS rewards",
+          "platform": "Venus"
+        }
+      ]
+    },
+    
+    "strategy3_volatileLP": {
+      "name": "Volatile LP Farming (High Yield)",
+      "description": "Higher-risk LP farming with volatile pairs - higher APY but impermanent loss risk",
+      "riskLevel": "high",
+      "expectedAPY": {
+        "min": 25,
+        "max": 200,
+        "typical": 50,
+        "description": "Trading fees + CAKE rewards + bonus incentives (varies greatly)"
+      },
+      "protocols": ["PancakeSwap V3", "Beefy Finance"],
+      "supportedAssets": ["BNB-USDT", "CAKE-BNB", "ETH-BNB", "BTCB-BNB"],
+      "warning": "Impermanent loss can significantly reduce or negate profits",
+      
+      "contracts": {
+        "bscMainnet": {
+          "chainId": 56,
+          
+          "volatilePools": {
+            "BNB_USDT_500": {
+              "poolAddress": "0x36696169C63e42cd08ce11f5deeBbCeBae652050",
+              "token0": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+              "token1": "0x55d398326f99059fF775485246999027B3197955",
+              "fee": 500,
+              "tickSpacing": 10
+            },
+            "CAKE_BNB_2500": {
+              "poolAddress": "0x7f51c8AaA6b0599abd16674e2b17FEc7a9f674A1",
+              "token0": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+              "token1": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+              "fee": 2500,
+              "tickSpacing": 50
+            },
+            "ETH_BNB_500": {
+              "poolAddress": "0x63912D2d75cd8D2e4CD76D6aB09C7C7Fe6b24a6E",
+              "token0": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+              "token1": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+              "fee": 500,
+              "tickSpacing": 10
+            },
+            "BTCB_BNB_500": {
+              "poolAddress": "0x172fcD41E0913e95784454622d1c3724f546f849",
+              "token0": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+              "token1": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+              "fee": 500,
+              "tickSpacing": 10
+            }
+          }
+        }
+      },
+      
+      "topPools": [
+        {
+          "pool": "CAKE-BNB 0.25%",
+          "pair": "CAKE/BNB",
+          "fee": "0.25%",
+          "tvl": "85000000",
+          "apr": 45.2,
+          "cakeAPR": 32.5,
+          "feeAPR": 12.7,
+          "volume24h": "25000000",
+          "impermanentLossRisk": "Medium-High"
+        },
+        {
+          "pool": "BNB-USDT 0.05%",
+          "pair": "BNB/USDT",
+          "fee": "0.05%",
+          "tvl": "120000000",
+          "apr": 35.8,
+          "cakeAPR": 22.0,
+          "feeAPR": 13.8,
+          "volume24h": "180000000",
+          "impermanentLossRisk": "Medium"
+        },
+        {
+          "pool": "ETH-BNB 0.05%",
+          "pair": "ETH/BNB",
+          "fee": "0.05%",
+          "tvl": "45000000",
+          "apr": 28.5,
+          "cakeAPR": 18.5,
+          "feeAPR": 10.0,
+          "volume24h": "35000000",
+          "impermanentLossRisk": "Medium"
+        },
+        {
+          "pool": "BTCB-BNB 0.05%",
+          "pair": "BTCB/BNB",
+          "fee": "0.05%",
+          "tvl": "38000000",
+          "apr": 22.3,
+          "cakeAPR": 14.5,
+          "feeAPR": 7.8,
+          "volume24h": "22000000",
+          "impermanentLossRisk": "Medium"
+        }
+      ],
+      
+      "beefyVaults": [
+        {
+          "name": "PancakeSwap CAKE-BNB",
+          "id": "cakev3-bsc-cake-wbnb-0.25",
+          "apy": 52.4,
+          "tvl": "15800000",
+          "strategy": "Auto-compound CAKE rewards"
+        },
+        {
+          "name": "PancakeSwap BNB-USDT",
+          "id": "cakev3-bsc-wbnb-usdt-0.05",
+          "apy": 38.2,
+          "tvl": "28500000",
+          "strategy": "Auto-compound CAKE rewards"
+        }
+      ]
+    }
+  },
+  
+  "liveDataAPIs": {
+    "defiLlama": {
+      "description": "Aggregated DeFi data across all protocols",
+      "baseUrl": "https://api.llama.fi",
+      "endpoints": {
+        "protocols": "GET /protocols",
+        "protocol": "GET /protocol/{slug}",
+        "yields": "GET /pools",
+        "chainTvl": "GET /v2/historicalChainTvl/{chain}",
+        "protocolTvl": "GET /tvl/{protocol}"
+      },
+      "yieldEndpoints": {
+        "baseUrl": "https://yields.llama.fi",
+        "pools": "GET /pools",
+        "poolsEnriched": "GET /poolsEnriched",
+        "chart": "GET /chart/{pool}",
+        "medianApy": "GET /median"
+      },
+      "relevantSlugs": {
+        "venus": "venus-core-pool",
+        "pancakeswap": "pancakeswap",
+        "beefy": "beefy"
+      },
+      "sampleRequests": {
+        "venusApy": "https://yields.llama.fi/pools?project=venus-core-pool",
+        "pancakeswapPools": "https://yields.llama.fi/pools?project=pancakeswap-amm-v3",
+        "beefyVaults": "https://yields.llama.fi/pools?project=beefy"
+      }
+    },
+    
+    "venusAPI": {
+      "description": "Official Venus Protocol API",
+      "mainnet": {
+        "baseUrl": "https://api.venus.io",
+        "endpoints": {
+          "markets": "GET /markets",
+          "pools": "GET /pools",
+          "history": "GET /markets/history",
+          "governance": "GET /governance/proposals"
+        }
+      },
+      "testnet": {
+        "baseUrl": "https://testnetapi.venus.io",
+        "endpoints": {
+          "markets": "GET /markets",
+          "pools": "GET /pools"
+        }
+      },
+      "subgraph": {
+        "mainnet": "https://api.thegraph.com/subgraphs/name/venusprotocol/venus-subgraph",
+        "testnet": "https://api.thegraph.com/subgraphs/name/venusprotocol/venus-testnet"
+      }
+    },
+    
+    "pancakeSwapAPI": {
+      "description": "PancakeSwap data endpoints",
+      "baseUrl": "https://api.pancakeswap.info",
+      "v3Subgraph": {
+        "bsc": "https://api.thegraph.com/subgraphs/name/pancakeswap/exchange-v3-bsc",
+        "bscQuery": {
+          "pools": "{ pools(first: 100, orderBy: totalValueLockedUSD, orderDirection: desc) { id token0 { symbol } token1 { symbol } feeTier liquidity totalValueLockedUSD volumeUSD } }",
+          "positions": "{ positions(where: { owner: \"$ADDRESS\" }) { id liquidity token0 { symbol } token1 { symbol } pool { id } } }"
+        }
+      },
+      "farmingAPI": {
+        "baseUrl": "https://farms-api.pancakeswap.com",
+        "endpoints": {
+          "farms": "GET /v3/bsc/farms",
+          "apr": "GET /v3/bsc/apr"
+        }
+      }
+    },
+    
+    "beefyAPI": {
+      "description": "Beefy Finance vault data",
+      "baseUrl": "https://api.beefy.finance",
+      "endpoints": {
+        "vaults": "GET /vaults",
+        "apy": "GET /apy",
+        "apyBreakdown": "GET /apy/breakdown",
+        "tvl": "GET /tvl",
+        "lps": "GET /lps"
+      },
+      "bscFilter": "?chain=bsc",
+      "sampleVaults": [
+        "cakev3-bsc-usdt-usdc-0.01",
+        "cakev3-bsc-wbnb-usdt-0.05",
+        "cakev3-bsc-cake-wbnb-0.25",
+        "venus-usdt",
+        "venus-usdc",
+        "venus-bnb"
+      ]
+    },
+    
+    "priceFeeds": {
+      "coingecko": {
+        "baseUrl": "https://api.coingecko.com/api/v3",
+        "endpoints": {
+          "price": "GET /simple/price?ids={ids}&vs_currencies=usd",
+          "tokenPrice": "GET /simple/token_price/{platform}?contract_addresses={addresses}&vs_currencies=usd"
+        },
+        "platformId": "binance-smart-chain"
+      },
+      "chainlink": {
+        "bnbChain": {
+          "BNB_USD": "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
+          "BTC_USD": "0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf",
+          "ETH_USD": "0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e",
+          "USDT_USD": "0xB97Ad0E74fa7d920791E90258A6E2085088b4320",
+          "USDC_USD": "0x51597f405303C4377E36123cBc172b13269EA163",
+          "CAKE_USD": "0xB6064eD41d4f67e353768aA239cA86f4F73665a1"
+        }
+      }
+    }
+  },
+  
+  "tokens": {
+    "bscMainnet": {
+      "WBNB": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "decimals": 18,
+        "symbol": "WBNB",
+        "coingeckoId": "wbnb"
+      },
+      "USDT": {
+        "address": "0x55d398326f99059fF775485246999027B3197955",
+        "decimals": 18,
+        "symbol": "USDT",
+        "coingeckoId": "tether"
+      },
+      "USDC": {
+        "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+        "decimals": 18,
+        "symbol": "USDC",
+        "coingeckoId": "usd-coin"
+      },
+      "BUSD": {
+        "address": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+        "decimals": 18,
+        "symbol": "BUSD",
+        "coingeckoId": "binance-usd"
+      },
+      "FDUSD": {
+        "address": "0xc5f0f7b66764F6ec8C8Dff7BA683102295E16409",
+        "decimals": 18,
+        "symbol": "FDUSD",
+        "coingeckoId": "first-digital-usd"
+      },
+      "BTCB": {
+        "address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+        "decimals": 18,
+        "symbol": "BTCB",
+        "coingeckoId": "binance-bitcoin"
+      },
+      "ETH": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "decimals": 18,
+        "symbol": "ETH",
+        "coingeckoId": "ethereum"
+      },
+      "CAKE": {
+        "address": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+        "decimals": 18,
+        "symbol": "CAKE",
+        "coingeckoId": "pancakeswap-token"
+      },
+      "XVS": {
+        "address": "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63",
+        "decimals": 18,
+        "symbol": "XVS",
+        "coingeckoId": "venus"
+      },
+      "BIFI": {
+        "address": "0xCa3F508B8e4Dd382eE878A314789373D80A5190A",
+        "decimals": 18,
+        "symbol": "BIFI",
+        "coingeckoId": "beefy-finance"
+      }
+    },
+    
+    "bscTestnet": {
+      "WBNB": {
+        "address": "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
+        "decimals": 18,
+        "symbol": "WBNB"
+      },
+      "USDT": {
+        "address": "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c",
+        "decimals": 18,
+        "symbol": "USDT"
+      },
+      "USDC": {
+        "address": "0x16227D60f7a0e586C66B005219dfc887D13C9531",
+        "decimals": 18,
+        "symbol": "USDC"
+      },
+      "XVS": {
+        "address": "0xB9e0E753630434d7863528cc73CB7AC638a7c8ff",
+        "decimals": 18,
+        "symbol": "XVS"
+      }
+    }
+  },
+  
+  "yieldCalculations": {
+    "description": "How yields are calculated for each strategy",
+    
+    "venusLending": {
+      "supplyAPY": "supplyRatePerBlock * blocksPerYear * 100",
+      "blocksPerYear": 10512000,
+      "xvsRewardAPY": "(xvsPerBlock * xvsPrice * blocksPerYear) / (totalSupply * underlyingPrice) * 100",
+      "totalAPY": "supplyAPY + xvsRewardAPY + primeAPY (if eligible)"
+    },
+    
+    "pancakeswapV3": {
+      "feeAPR": "(fees24h * 365) / liquidity * 100",
+      "cakeAPR": "(cakeRewards * cakePrice * 365) / (liquidity) * 100",
+      "totalAPR": "feeAPR + cakeAPR"
+    },
+    
+    "beefyVault": {
+      "apy": "((1 + dailyRate) ^ 365 - 1) * 100",
+      "autoCompoundBoost": "Typically 10-30% higher than manual farming"
+    },
+    
+    "yieldEstimatesForAmount": {
+      "$10": {
+        "strategy1_safeLending": {
+          "dailyYield": "$0.00109",
+          "monthlyYield": "$0.033",
+          "yearlyYield": "$0.40",
+          "note": "At 4% APY"
+        },
+        "strategy2_stablecoinLP": {
+          "dailyYield": "$0.00329",
+          "monthlyYield": "$0.10",
+          "yearlyYield": "$1.20",
+          "note": "At 12% APY"
+        },
+        "strategy3_volatileLP": {
+          "dailyYield": "$0.0137",
+          "monthlyYield": "$0.42",
+          "yearlyYield": "$5.00",
+          "note": "At 50% APY (before IL)"
+        }
+      },
+      "$100": {
+        "strategy1_safeLending": {
+          "dailyYield": "$0.0109",
+          "monthlyYield": "$0.33",
+          "yearlyYield": "$4.00"
+        },
+        "strategy2_stablecoinLP": {
+          "dailyYield": "$0.0329",
+          "monthlyYield": "$1.00",
+          "yearlyYield": "$12.00"
+        },
+        "strategy3_volatileLP": {
+          "dailyYield": "$0.137",
+          "monthlyYield": "$4.17",
+          "yearlyYield": "$50.00"
+        }
+      },
+      "$1000": {
+        "strategy1_safeLending": {
+          "dailyYield": "$0.109",
+          "monthlyYield": "$3.33",
+          "yearlyYield": "$40.00"
+        },
+        "strategy2_stablecoinLP": {
+          "dailyYield": "$0.329",
+          "monthlyYield": "$10.00",
+          "yearlyYield": "$120.00"
+        },
+        "strategy3_volatileLP": {
+          "dailyYield": "$1.37",
+          "monthlyYield": "$41.67",
+          "yearlyYield": "$500.00"
+        }
+      }
+    }
+  },
+  
+  "riskMatrix": {
+    "strategy1_safeLending": {
+      "overallRisk": "Low",
+      "smartContractRisk": "Low - Venus is battle-tested",
+      "impermanentLoss": "None",
+      "liquidationRisk": "None (supply only)",
+      "protocolRisk": "Low - $2B+ TVL",
+      "bestFor": "Conservative users, stable long-term yield"
+    },
+    "strategy2_stablecoinLP": {
+      "overallRisk": "Medium-Low",
+      "smartContractRisk": "Low - PancakeSwap V3 is audited",
+      "impermanentLoss": "Very Low (stablecoin pairs)",
+      "liquidationRisk": "None",
+      "protocolRisk": "Low - Leading BSC DEX",
+      "bestFor": "Moderate risk tolerance, higher yield seekers"
+    },
+    "strategy3_volatileLP": {
+      "overallRisk": "High",
+      "smartContractRisk": "Low - PancakeSwap V3 is audited",
+      "impermanentLoss": "High - volatile pairs",
+      "liquidationRisk": "None",
+      "protocolRisk": "Low",
+      "bestFor": "Experienced DeFi users, short-term high yield plays"
+    }
+  },
+  
+  "integrationGuide": {
+    "step1_deposit": {
+      "safeLending": [
+        "1. Approve vToken to spend underlying",
+        "2. Call vToken.mint(amount)",
+        "3. Receive vTokens representing share",
+        "4. Interest accrues automatically in vToken value"
+      ],
+      "stablecoinLP": [
+        "1. Approve tokens to Router",
+        "2. Call NonfungiblePositionManager.mint()",
+        "3. Receive NFT position",
+        "4. Stake NFT in MasterChefV3 for CAKE rewards"
+      ]
+    },
+    "step2_harvest": {
+      "safeLending": [
+        "1. Call Comptroller.claimVenus()",
+        "2. Swap XVS to underlying via PancakeSwap",
+        "3. Re-deposit or distribute as YBOT rewards"
+      ],
+      "lpFarming": [
+        "1. Call MasterChefV3.harvest(tokenId)",
+        "2. Swap CAKE to desired token",
+        "3. Re-deposit or distribute as YBOT rewards"
+      ]
+    },
+    "step3_withdraw": {
+      "safeLending": [
+        "1. Call vToken.redeemUnderlying(amount)",
+        "2. Receive underlying tokens"
+      ],
+      "lpFarming": [
+        "1. Call MasterChefV3.withdraw(tokenId)",
+        "2. Call NonfungiblePositionManager.decreaseLiquidity()",
+        "3. Call NonfungiblePositionManager.collect()",
+        "4. Receive tokens"
+      ]
+    }
+  }
+}
