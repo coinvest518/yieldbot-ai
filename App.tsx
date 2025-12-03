@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Dashboard from './components/Dashboard';
@@ -110,6 +111,7 @@ const App: React.FC = () => {
           <Route path="/fundraiser" element={<FundraiserPage />} />
           <Route path="/staking" element={<StakingPage />} />
         </Routes>
+        <Analytics />
       </div>
     </Router>
   );

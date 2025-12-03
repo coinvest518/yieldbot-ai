@@ -23,6 +23,7 @@
     "@reown/appkit": "^1.8.14",
     "@reown/appkit-adapter-wagmi": "^1.8.14",
     "@tanstack/react-query": "^5.90.11",
+    "@vercel/analytics": "^1.6.1",
     "clsx": "^2.1.1",
     "cross-fetch": "^4.1.0",
     "dotenv": "^16.1.4",
