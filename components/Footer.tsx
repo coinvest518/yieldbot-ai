@@ -46,7 +46,9 @@ const Footer: React.FC = () => {
               <Github size={18} />
             </a>
             <a 
-              href="#" 
+              href="https://t.me/yieldbotai" 
+              target="_blank" 
+              rel="noopener noreferrer"
               className="w-10 h-10 bg-slate-800 hover:bg-purple-500/20 border border-slate-700 hover:border-purple-500/50 rounded-lg flex items-center justify-center text-gray-400 hover:text-white transition-all"
             >
               <Send size={18} />

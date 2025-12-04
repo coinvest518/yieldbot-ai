@@ -112,6 +112,17 @@ const App: React.FC = () => {
           <Route path="/staking" element={<StakingPage />} />
         </Routes>
         <Analytics />
+        {/* User Feedback Button */}
+        <div className="fixed bottom-4 right-4 z-50">
+          <a
+            href="https://t.me/yieldbotai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg shadow-lg transition-all"
+          >
+            User Feedback
+          </a>
+        </div>
       </div>
     </Router>
   );
