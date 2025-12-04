@@ -3,7 +3,7 @@ import { ArrowRight, Lock, TrendingUp, ShieldCheck } from 'lucide-react';
 
 const Hero: React.FC = () => {
   return (
-    <div className="relative pt-32 pb-16 overflow-hidden min-h-[85vh] flex items-center">
+    <div className="relative pt-40 pb-16 overflow-hidden min-h-[85vh] flex items-center">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-ybot-primary/10 rounded-full blur-[120px]" />
@@ -108,6 +108,98 @@ const Hero: React.FC = () => {
                
                {/* Glow behind */}
                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[100%] bg-ybot-primary/20 blur-[60px] -z-10 rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* Partners & Listings Section */}
+        <div className="mt-20 pt-12 border-t border-white/5">
+          {/* Listed On */}
+          <div className="text-center mb-10">
+            <p className="text-xs text-gray-500 uppercase tracking-widest mb-6">Listed & Tracked On</p>
+            <div className="flex flex-wrap justify-center items-center gap-4">
+              <a href="https://coinmooner.com/coins/yield-bot-ybot" target="_blank" rel="noopener noreferrer" className="partner-card">
+                <img src="/coinmooner.png" alt="CoinMooner" className="h-5" />
+                <span>CoinMooner</span>
+              </a>
+              <a href="https://pancakeswap.finance/swap?outputCurrency=0xYBOT" target="_blank" rel="noopener noreferrer" className="partner-card">
+                <img src="https://assets.coingecko.com/coins/images/12632/small/pancakeswap-cake-logo_%281%29.png" alt="PancakeSwap" className="h-6" />
+                <span>PancakeSwap</span>
+              </a>
+              <a href="https://dexscreener.com/bsc" target="_blank" rel="noopener noreferrer" className="partner-card">
+                <img src="https://dexscreener.com/favicon.png" alt="DEXScreener" className="h-5" />
+                <span>DEXScreener</span>
+              </a>
+              <a href="https://www.dextools.io/app/en/bnb/pairs" target="_blank" rel="noopener noreferrer" className="partner-card">
+                <img src="/dextools.svg" alt="DEXTools" className="h-5" />
+                <span>DEXTools</span>
+              </a>
+              <a href="https://www.geckoterminal.com/bsc/pools" target="_blank" rel="noopener noreferrer" className="partner-card">
+                <img src="https://www.geckoterminal.com/favicon.ico" alt="GeckoTerminal" className="h-5" />
+                <span>GeckoTerminal</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Powered By Protocols */}
+          <div className="text-center mb-10">
+            <p className="text-xs text-gray-500 uppercase tracking-widest mb-6">Powered By DeFi Protocols</p>
+            <div className="flex flex-wrap justify-center items-center gap-4">
+              <a href="https://venus.io" target="_blank" rel="noopener noreferrer" className="partner-card partner-card-protocol">
+                <img src="https://assets.coingecko.com/coins/images/12677/small/venus.png" alt="Venus" className="h-6" />
+                <span>Venus Protocol</span>
+              </a>
+              <a href="https://pancakeswap.finance" target="_blank" rel="noopener noreferrer" className="partner-card partner-card-protocol">
+                <img src="https://assets.coingecko.com/coins/images/12632/small/pancakeswap-cake-logo_%281%29.png" alt="PancakeSwap" className="h-6" />
+                <span>PancakeSwap V3</span>
+              </a>
+              <a href="https://beefy.com" target="_blank" rel="noopener noreferrer" className="partner-card partner-card-protocol">
+                <img src="https://app.beefy.com/favicon.ico" alt="Beefy" className="h-6" />
+                <span>Beefy Finance</span>
+              </a>
+              <a href="https://chain.link" target="_blank" rel="noopener noreferrer" className="partner-card partner-card-protocol">
+                <img src="https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png" alt="Chainlink" className="h-6" />
+                <span>Chainlink Oracles</span>
+              </a>
+              <a href="https://www.bnbchain.org" target="_blank" rel="noopener noreferrer" className="partner-card partner-card-protocol">
+                <img src="https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" alt="BNB Chain" className="h-6" />
+                <span>BNB Chain</span>
+              </a>
+              <a href="https://moralis.io" target="_blank" rel="noopener noreferrer" className="partner-card partner-card-protocol">
+                <img src="https://moralis.io/wp-content/uploads/2021/05/moralis-light.svg" alt="Moralis" className="h-5" />
+                <span>Moralis</span>
+              </a>
+              <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer" className="partner-card partner-card-protocol">
+                <img src="https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png" alt="CoinGecko" className="h-5" />
+                <span>CoinGecko API</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Coming Soon */}
+          <div className="text-center">
+            <p className="text-xs text-gray-500 uppercase tracking-widest mb-6">Coming Soon</p>
+            <div className="flex flex-wrap justify-center items-center gap-3">
+              <div className="partner-card-soon">
+                <img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" alt="Ethereum" className="h-4" />
+                <span>Ethereum</span>
+              </div>
+              <div className="partner-card-soon">
+                <img src="https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png" alt="Avalanche" className="h-4" />
+                <span>Avalanche</span>
+              </div>
+              <div className="partner-card-soon">
+                <img src="https://assets.coingecko.com/coins/images/4713/small/polygon.png" alt="Polygon" className="h-4" />
+                <span>Polygon</span>
+              </div>
+              <div className="partner-card-soon">
+                <img src="https://assets.coingecko.com/coins/images/12271/small/512x512_Logo_no_chridge.png" alt="Aave" className="h-4" />
+                <span>Aave</span>
+              </div>
+              <div className="partner-card-soon">
+                <img src="https://assets.coingecko.com/coins/images/9956/small/Badge_Dai.png" alt="MakerDAO" className="h-4" />
+                <span>MakerDAO</span>
+              </div>
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@ import ApiTester from './components/ApiTester';
 import AIAgentsPage from './pages/AIAgentsPage';
 import FundraiserPage from './pages/FundraiserPage';
 import StakingPage from './pages/StakingPage';
+import LiveTicker from './components/LiveTicker';
 import { clearWalletConnection } from './services/web3Service';
 import { useAccount } from 'wagmi';
 
@@ -105,6 +106,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="min-h-screen bg-ybot-dark selection:bg-ybot-primary selection:text-white font-sans">
+        <LiveTicker />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/ai-agents" element={<AIAgentsPage />} />
