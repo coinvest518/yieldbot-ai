@@ -138,6 +138,10 @@ const Hero: React.FC = () => {
                 <img src="https://www.geckoterminal.com/favicon.ico" alt="GeckoTerminal" className="h-5" />
                 <span>GeckoTerminal</span>
               </a>
+              <a href="https://thena.fi/analytics/pairs/0x5873e9df0524af29bdcdd7ee028d6dc31d8c3cc0" target="_blank" rel="noopener noreferrer" className="partner-card">
+                <img src="https://thena.fi/favicon.ico" alt="Thena" className="h-5" />
+                <span>Thena DEX</span>
+              </a>
             </div>
           </div>
 

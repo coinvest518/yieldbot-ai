@@ -8,12 +8,16 @@ import { createAppKit } from '@reown/appkit/react';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { bscTestnet, bsc } from '@reown/appkit/networks';
 
-const projectId = import.meta.env.VITE_REOWN_PROJECT_ID || 'cd2c15a170750ad01e62ef80f2ba74f4';
+const projectId = import.meta.env.VITE_REOWN_PROJECT_ID;
+
+if (!projectId) {
+  throw new Error('VITE_REOWN_PROJECT_ID is not set. Get one from https://dashboard.reown.com');
+}
 
 const metadata = {
   name: 'yBOT.FINANCE',
   description: 'BNB Chain NFT Minter & DeFi Platform',
-  url: 'http://localhost:3000',
+  url: 'https://yieldbot.cc',
   icons: ['https://avatars.githubusercontent.com/u/179229932']
 };
 
@@ -35,8 +39,8 @@ createAppKit({
   projectId,
   features: {
     analytics: true,
-    onramp: true,
-    swaps: true // Note: Only works on mainnet with supported tokens
+    email: false,
+    socials: []
   }
 });
 
