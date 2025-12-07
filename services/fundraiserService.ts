@@ -20,9 +20,9 @@ const FUNDRAISER_ABI = [
   "function getUserTokenBalance(address user) view returns (uint256)",
   "function getStats() view returns (uint256 _totalTokensSold, uint256 _totalUsdRaised, uint256 _currentPrice, uint256 _bnbPrice)",
   // Write functions
-  "function buyWithUsdc(uint256 usdcAmount)",
-  "function buyWithBnb() payable",
-  "function sellTokens(uint256 tokenAmount)",
+  "function buyWithUsdc(uint256 usdcAmount, uint256 minTokensOut)",
+  "function buyWithBnb(uint256 minTokensOut) payable",
+  "function sellTokens(uint256 tokenAmount, uint256 minUsdcOut)",
   // Events
   "event TokensPurchased(address indexed buyer, uint256 usdAmount, uint256 tokensMinted, uint256 pricePerToken)",
   "event TokensSold(address indexed seller, uint256 tokenAmount, uint256 usdReceived, uint256 pricePerToken)"
@@ -304,15 +304,19 @@ export const buyWithBnb = async (amountBnb: string): Promise<string> => {
   const provider = new ethers.BrowserProvider(ethereum);
   const signer = await provider.getSigner();
   const address = await getFundraiserAddress();
-  
+
   if (!address) throw new Error('Fundraiser contract not deployed');
-  
+
   const contract = new ethers.Contract(address, FUNDRAISER_ABI, signer);
-  
-  const tx = await contract.buyWithBnb({
+
+  // Calculate expected tokens to set minimum output (with 10% slippage tolerance)
+  const { tokens } = await calculateTokensForAmount(amountBnb, 'BNB');
+  const minTokensOut = ethers.parseUnits((parseFloat(tokens) * 0.9).toString(), 18);
+
+  const tx = await contract.buyWithBnb(minTokensOut, {
     value: ethers.parseEther(amountBnb)
   });
-  
+
   await tx.wait();
   return tx.hash;
 };
@@ -340,7 +344,12 @@ export const buyWithUsdc = async (amountUsdc: string): Promise<string> => {
   
   // Buy tokens
   const contract = new ethers.Contract(fundraiserAddress, FUNDRAISER_ABI, signer);
-  const tx = await contract.buyWithUsdc(amountWei);
+  
+  // Calculate expected tokens to set minimum output (with 10% slippage tolerance)
+  const { tokens } = await calculateTokensForAmount(amountUsdc, 'USDC');
+  const minTokensOut = ethers.parseUnits((parseFloat(tokens) * 0.9).toString(), 18);
+  
+  const tx = await contract.buyWithUsdc(amountWei, minTokensOut);
   await tx.wait();
   
   return tx.hash;
@@ -356,15 +365,20 @@ export const sellTokens = async (tokenAmount: string): Promise<string> => {
   const provider = new ethers.BrowserProvider(ethereum);
   const signer = await provider.getSigner();
   const address = await getFundraiserAddress();
-  
+
   if (!address) throw new Error('Fundraiser contract not deployed');
-  
+
   const contract = new ethers.Contract(address, FUNDRAISER_ABI, signer);
   const amountWei = ethers.parseUnits(tokenAmount, 18);
-  
-  const tx = await contract.sellTokens(amountWei);
+
+  // Calculate expected USDC return to set minimum output (with 10% slippage tolerance)
+  // For selling, we need to calculate the USD value of tokens
+  const expectedValue = await contract.calculateUsdForTokens(amountWei);
+  const minUsdcOut = (expectedValue[0] * 90n) / 100n; // 10% slippage tolerance
+
+  const tx = await contract.sellTokens(amountWei, minUsdcOut);
   await tx.wait();
-  
+
   return tx.hash;
 };
 

@@ -17,7 +17,7 @@ if (!projectId) {
 const metadata = {
   name: 'yBOT.FINANCE',
   description: 'BNB Chain NFT Minter & DeFi Platform',
-  url: 'https://yieldbot.cc',
+  url: 'http://localhost:3000',
   icons: ['https://avatars.githubusercontent.com/u/179229932']
 };
 
