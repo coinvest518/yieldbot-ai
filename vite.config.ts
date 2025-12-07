@@ -8,6 +8,25 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        proxy: {
+          '/api/moralis': {
+            target: 'https://deep-index.moralis.io',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/api\/moralis/, '/api/v2.2'),
+            configure: (proxy, options) => {
+              proxy.on('proxyReq', (proxyReq, req, res) => {
+                // Add the API key header
+                const apiKey = env.VITE_MORALIS_KEY;
+                if (apiKey) {
+                  proxyReq.setHeader('X-API-Key', apiKey);
+                  proxyReq.setHeader('accept', 'application/json');
+                } else {
+                  console.warn('No Moralis API key found in environment');
+                }
+              });
+            }
+          }
+        }
       },
       plugins: [react()],
       define: {

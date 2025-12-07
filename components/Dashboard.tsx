@@ -8,7 +8,7 @@ import { getNativeBalance, fetchWalletNFTs } from '../services/moralisService';
 import { mockFetchUserFinance, mockFetchVaultStats, drawCreditCard, getTierFromScore, drawAccessKey } from '../services/yieldService';
 import { generateLayeredNFT, getTierFromRarity } from '../services/layerGenService';
 import { getPrices } from '../services/priceService';
-import { getFundraiserStats, buyWithBnb, FUNDRAISER_CONSTANTS, type FundraiserStats } from '../services/fundraiserService';
+import { getFundraiserStats, buyWithBnb, FUNDRAISER_CONSTANTS, type FundraiserStats, clearEventsCache } from '../services/fundraiserService';
 import { useAccount, useChainId } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
 import Gallery from './Gallery';
@@ -272,6 +272,9 @@ const Dashboard: React.FC = () => {
       setYbotBalance(newBalance);
       const fStats = await getFundraiserStats();
       setFundraiserStats(fStats);
+      
+      // Clear event cache to force fresh data fetch
+      clearEventsCache();
     } catch (e) {
       console.error('Buy failed:', e);
       alert('Purchase failed. Please check your BNB balance and try again.');
@@ -520,13 +523,13 @@ const Dashboard: React.FC = () => {
                                 ${fundraiserStats?.totalUsdRaised || '0'} raised
                               </span>
                               <span className="text-gray-400">
-                                {fundraiserStats?.progressPercent.toFixed(1) || '0'}% of ${(FUNDRAISER_CONSTANTS.FUNDRAISING_GOAL / 1000).toFixed(0)}K goal
+                                {fundraiserStats?.progressPercent.toFixed(4) || '0'}% of ${(FUNDRAISER_CONSTANTS.FUNDRAISING_GOAL / 1000).toFixed(0)}K goal
                               </span>
                             </div>
                             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                               <div 
                                 className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
-                                style={{ width: `${Math.min(fundraiserStats?.progressPercent || 0, 100)}%` }}
+                                style={{ width: `${Math.max(Math.min(fundraiserStats?.progressPercent || 0, 100), fundraiserStats && fundraiserStats.progressPercent > 0 ? 1 : 0)}%` }}
                               />
                             </div>
                           </div>

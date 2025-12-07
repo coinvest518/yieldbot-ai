@@ -35,7 +35,7 @@ import {
   generateBondingCurveData,
   getLeaderboard,
   subscribeToPurchaseEvents,
-  getRealTradeHistory,
+  fetchContractEvents,
   FUNDRAISER_CONSTANTS,
   type FundraiserStats,
   type UserFundraiserData,
@@ -53,11 +53,39 @@ interface BondingCurveChartProps {
 }
 
 const BondingCurveChart: React.FC<BondingCurveChartProps> = ({ data, currentPosition }) => {
+  // Handle empty data
+  if (!data || data.length === 0) {
+    return (
+      <div className="relative h-64 w-full flex items-center justify-center">
+        <p className="text-gray-500">Loading chart data...</p>
+      </div>
+    );
+  }
+
   const maxPrice = Math.max(...data.map(d => d.price));
   const maxTokens = Math.max(...data.map(d => d.tokensSold));
   
   // Find current position index
   const currentIdx = data.findIndex(d => d.tokensSold >= currentPosition);
+  
+  // Generate path data safely
+  const pathData = data.map((point, i) => {
+    const x = (point.tokensSold / maxTokens) * 400;
+    const y = 200 - (point.price / maxPrice) * 180;
+    // Ensure coordinates are valid numbers
+    const safeX = isNaN(x) ? 0 : Math.max(0, Math.min(400, x));
+    const safeY = isNaN(y) ? 200 : Math.max(0, Math.min(200, y));
+    return `${i === 0 ? 'M' : 'L'} ${safeX} ${safeY}`;
+  }).join(' ');
+  
+  // Generate filled area path
+  const filledAreaData = `M 0 200 ${data.map((point) => {
+    const x = (point.tokensSold / maxTokens) * 400;
+    const y = 200 - (point.price / maxPrice) * 180;
+    const safeX = isNaN(x) ? 0 : Math.max(0, Math.min(400, x));
+    const safeY = isNaN(y) ? 200 : Math.max(0, Math.min(200, y));
+    return `L ${safeX} ${safeY}`;
+  }).join(' ')} L 400 200 Z`;
   
   return (
     <div className="relative h-64 w-full">
@@ -81,11 +109,7 @@ const BondingCurveChart: React.FC<BondingCurveChartProps> = ({ data, currentPosi
           
           {/* Filled area under curve */}
           <path
-            d={`M 0 200 ${data.map((point, i) => {
-              const x = (point.tokensSold / maxTokens) * 400;
-              const y = 200 - (point.price / maxPrice) * 180;
-              return `L ${x} ${y}`;
-            }).join(' ')} L 400 200 Z`}
+            d={filledAreaData}
             fill="url(#curveGradient)"
             opacity="0.3"
           />
@@ -100,11 +124,7 @@ const BondingCurveChart: React.FC<BondingCurveChartProps> = ({ data, currentPosi
           
           {/* Main curve line */}
           <path
-            d={`M ${data.map((point, i) => {
-              const x = (point.tokensSold / maxTokens) * 400;
-              const y = 200 - (point.price / maxPrice) * 180;
-              return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-            }).join(' ')}`}
+            d={pathData}
             fill="none"
             stroke="#8b5cf6"
             strokeWidth="3"
@@ -234,11 +254,16 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries, userAddress }) => {
       {entries.map((entry) => (
         <div
           key={entry.rank}
-          className={`flex items-center justify-between p-3 rounded-lg ${
+          className={`flex items-center justify-between p-3 rounded-lg cursor-pointer hover:opacity-80 transition-opacity ${
             entry.address === userAddress
               ? 'bg-purple-500/20 border border-purple-500/30'
               : 'bg-slate-800/50'
           }`}
+          onClick={() => {
+            if (entry.fullAddress && entry.fullAddress !== '') {
+              window.open(`https://bscscan.com/address/${entry.fullAddress}`, '_blank');
+            }
+          }}
         >
           <div className="flex items-center gap-3">
             <span className="text-xl w-8 text-center">{getRankIcon(entry.rank)}</span>
@@ -263,8 +288,21 @@ interface TradeInterfaceProps {
 }
 
 const TradeInterface: React.FC<TradeInterfaceProps> = ({ stats, userData, onTrade }) => {
-  const { address, isConnected } = useAccount();
-  const { data: bnbBalance } = useBalance({ address });
+  // Wrap wagmi hooks in try-catch to prevent MetaMask errors
+  let address: `0x${string}` | undefined;
+  let isConnected = false;
+  let bnbBalance: any = null;
+
+  try {
+    const accountData = useAccount();
+    address = accountData.address;
+    isConnected = accountData.isConnected;
+    const balanceData = useBalance({ address });
+    bnbBalance = balanceData.data;
+  } catch (walletError) {
+    console.warn('⚠️ Trade interface wallet error:', walletError);
+    // Continue with wallet features disabled
+  }
   
   const [mode, setMode] = useState<'buy' | 'sell'>('buy');
   const [paymentToken, setPaymentToken] = useState<'BNB' | 'USDC'>('BNB');
@@ -511,9 +549,21 @@ const TradeInterface: React.FC<TradeInterfaceProps> = ({ stats, userData, onTrad
 // ============ MAIN PAGE ============
 
 const FundraiserPage: React.FC = () => {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  
+  // Wrap wagmi hooks in try-catch to prevent MetaMask errors from breaking the UI
+  let address: string | undefined;
+  let isConnected = false;
+  let chainId: number | undefined;
+
+  try {
+    const accountData = useAccount();
+    address = accountData.address;
+    isConnected = accountData.isConnected;
+    chainId = useChainId();
+  } catch (walletError) {
+    console.warn('⚠️ Wallet connection error, continuing without wallet features:', walletError);
+    // Continue with wallet features disabled
+  }
+
   const [stats, setStats] = useState<FundraiserStats | null>(null);
   const [userData, setUserData] = useState<UserFundraiserData>({ contribution: '0', tokenBalance: '0' });
   const [trades, setTrades] = useState<TradeEvent[]>([]);
@@ -523,38 +573,60 @@ const FundraiserPage: React.FC = () => {
   const [ybotBalance, setYbotBalance] = useState('0');
 
   const loadData = useCallback(async () => {
+    console.log('🔄 loadData called, isConnected:', isConnected, 'address:', address);
     setLoading(true);
     try {
-      // Only fetch basic mock data when wallet is not connected
-      // This prevents RPC errors on page load
+      // Load public data first (stats, trade history, leaderboard) - no wallet needed
+      console.log('📊 Loading public data...');
+      const [statsData, leaderboardData, tradeHistory] = await Promise.all([
+        getFundraiserStats(), // Now works without wallet connection!
+        getLeaderboard(),
+        fetchContractEvents('all', 50) // Fetch REAL trade history from Moralis - PUBLIC DATA
+      ]);
+
+      console.log('📈 Stats loaded:', statsData);
+      console.log('🏆 Leaderboard loaded:', leaderboardData.length, 'entries');
+      console.log('💰 Trade history loaded:', tradeHistory.length, 'trades');
+
+      setStats(statsData); // Set real stats - PUBLIC DATA
+      setLeaderboard(leaderboardData);
+      setTrades(tradeHistory); // Set real trades - PUBLIC DATA
+      setCurveData(generateBondingCurveData(1000000, parseFloat(statsData.totalTokensSold)));
+
+      // Only fetch wallet-specific data when wallet is connected
       if (!isConnected || !address) {
-        // Use mock/local data without making RPC calls
-        const curvePoints = generateBondingCurveData(1000000, 0);
-        setCurveData(curvePoints);
+        console.log('👛 Wallet not connected, skipping wallet-specific data');
         setLoading(false);
         return;
       }
 
-      // Only make blockchain calls when wallet is connected
-      const [statsData, leaderboardData, tradeHistory] = await Promise.all([
-        getFundraiserStats(),
-        getLeaderboard(),
-        getRealTradeHistory(50) // Fetch REAL trade history from Moralis
-      ]);
-      
-      setStats(statsData);
-      setLeaderboard(leaderboardData);
-      setTrades(tradeHistory); // Set real trades
-      setCurveData(generateBondingCurveData(1000000, parseFloat(statsData.totalTokensSold)));
-      
-      const [userDataResult, balance] = await Promise.all([
-        getUserFundraiserData(address),
-        getYBOTBalance(address)
-      ]);
-      setUserData(userDataResult);
-      setYbotBalance(balance);
+      console.log('👛 Loading wallet-specific data for:', address);
+      try {
+        // Wallet-specific data (requires connection)
+        const [userDataResult, balance] = await Promise.all([
+          getUserFundraiserData(address),
+          getYBOTBalance(address)
+        ]);
+        setUserData(userDataResult);
+        setYbotBalance(balance);
+        console.log('✅ Wallet data loaded');
+      } catch (walletError) {
+        console.warn('⚠️ Wallet data failed to load:', walletError);
+        // Don't fail the entire load if wallet data fails
+      }
     } catch (error) {
-      console.error('Error loading fundraiser data:', error);
+      console.error('❌ Error loading fundraiser data:', error);
+      // Set some fallback data so the UI doesn't break
+      setTrades([]);
+      setLeaderboard([]);
+      setStats({
+        totalUsdRaised: '0',
+        totalTokensSold: '0',
+        currentPrice: '0.15',
+        bnbPrice: '650.00',
+        progressPercent: 0,
+        feePercent: 5
+      });
     } finally {
       setLoading(false);
     }
@@ -664,11 +736,11 @@ const FundraiserPage: React.FC = () => {
           <div className="w-full h-4 bg-slate-800 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
-              style={{ width: `${Math.min(stats?.progressPercent || 0, 100)}%` }}
+              style={{ width: `${Math.max(Math.min(stats?.progressPercent || 0, 100), stats && stats.progressPercent > 0 ? 1 : 0)}%` }}
             />
           </div>
           <div className="flex justify-between mt-2 text-sm text-gray-500">
-            <span>{stats?.progressPercent.toFixed(1)}% funded</span>
+            <span>{stats?.progressPercent.toFixed(4)}% funded</span>
             <span>{stats?.totalTokensSold ? parseFloat(stats.totalTokensSold).toLocaleString() : '0'} tokens sold</span>
           </div>
         </div>

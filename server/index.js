@@ -12,9 +12,11 @@ app.use(express.json({ limit: '50mb' }));
 
 const PINATA_KEY = process.env.VITE_PINATA_KEY;
 const PINATA_SECRET = process.env.VITE_PINATA_SECRET;
+const MORALIS_API_KEY = process.env.VITE_MORALIS_KEY;
 
 console.log('Loaded PINATA_KEY:', PINATA_KEY ? 'YES' : 'NO');
 console.log('Loaded PINATA_SECRET:', PINATA_SECRET ? 'YES' : 'NO');
+console.log('Loaded MORALIS_API_KEY:', MORALIS_API_KEY ? 'YES' : 'NO');
 
 if (!PINATA_KEY || !PINATA_SECRET) {
   console.warn('Warning: VITE_PINATA_KEY or VITE_PINATA_SECRET not set in environment. Pin endpoints will fail.');
@@ -90,6 +92,43 @@ app.post('/api/pin/metadata', async (req, res) => {
     return res.json({ metaCid });
   } catch (err) {
     console.error('Pin metadata error', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Moralis API proxy endpoint to avoid CORS issues
+app.get('/api/moralis/erc20/:tokenAddress/transfers', async (req, res) => {
+  try {
+    const { tokenAddress } = req.params;
+    const { chain = 'bsc', limit = '100' } = req.query;
+
+    if (!MORALIS_API_KEY) {
+      return res.status(500).json({ error: 'Moralis API key not configured' });
+    }
+
+    const url = `https://deep-index.moralis.io/api/v2.2/erc20/${tokenAddress}/transfers?chain=${chain}&limit=${limit}`;
+
+    console.log('Proxying Moralis request to:', url);
+
+    const response = await fetch(url, {
+      headers: {
+        'X-API-Key': MORALIS_API_KEY,
+        'accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Moralis API error:', response.status, errorText);
+      return res.status(response.status).json({ error: errorText });
+    }
+
+    const data = await response.json();
+    console.log(`Moralis returned ${data.result?.length || 0} transfers for token ${tokenAddress}`);
+
+    return res.json(data);
+  } catch (err) {
+    console.error('Moralis proxy error:', err);
     return res.status(500).json({ error: err.message });
   }
 });
