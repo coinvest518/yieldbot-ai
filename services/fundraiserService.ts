@@ -731,7 +731,7 @@ const fetchYBOTTokenTransfers = async (
 
   try {
     // Use backend server proxy to avoid CORS issues
-    const transfersUrl = `http://localhost:4001/api/moralis/erc20/${ybotTokenAddress}/transfers?chain=bsc&limit=${Math.min(limit * 2, 100)}`;
+    const transfersUrl = `http://localhost:4001/api/moralis/erc20/${ybotTokenAddress}/transfers?chain=bsc&limit=${Math.min(limit, 25)}`;
 
     console.log('🌐 Making backend proxy API call to:', transfersUrl.replace(/eyJ[^"]*/, '***'));
 
@@ -819,7 +819,7 @@ const fetchYBOTTokenTransfers = async (
  */
 export const fetchContractEvents = async (
   eventType: 'TokensPurchased' | 'TokensSold' | 'all' = 'all',
-  limit: number = 100
+  limit: number = 25
 ): Promise<TradeEvent[]> => {
   const contractAddress = await getFundraiserAddress();
   if (!contractAddress) {
