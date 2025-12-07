@@ -710,93 +710,76 @@ const fetchEventsFromMoralis = async (
 
 /**
  * Fetch YBOT token transfers to show real trade history
- * Uses ERC20 transfers API which is reliable and shows actual token movements
+ * Uses on-chain ERC20 Transfer events for reliable token movements
  */
 const fetchYBOTTokenTransfers = async (
   limit: number = 100
 ): Promise<TradeEvent[]> => {
-  const MORALIS_API_KEY = import.meta.env.VITE_MORALIS_KEY;
   const fundraiserAddress = getFundraiserAddressForTrades(); // Use mainnet address for trade history
-  const ybotTokenAddress = '0x4f8e86d018377d3fa06609c7b238282ed530707f'; // YBOT token address - CORRECTED
+  const ybotTokenAddress = '0x4f8e86d018377d3fa06609c7b238282ed530707f'; // YBOT token address
 
   console.log('🔍 fetchYBOTTokenTransfers called with limit:', limit);
-  console.log('🔑 MORALIS_API_KEY present:', !!MORALIS_API_KEY, 'length:', MORALIS_API_KEY?.length);
   console.log('🏠 fundraiserAddress:', fundraiserAddress);
   console.log('🪙 ybotTokenAddress:', ybotTokenAddress);
 
-  if (!MORALIS_API_KEY || !fundraiserAddress) {
-    console.warn('❌ Missing API key or contract addresses');
+  if (!fundraiserAddress) {
+    console.warn('❌ Missing contract addresses');
     return [];
   }
 
   try {
-    // Use backend server proxy to avoid CORS issues
-    const transfersUrl = `http://localhost:4001/api/moralis/erc20/${ybotTokenAddress}/transfers?chain=bsc&limit=${Math.min(limit, 25)}`;
+    // Use on-chain provider to query Transfer events
+    const provider = new ethers.JsonRpcProvider("https://bsc-dataseed.binance.org/"); // BSC mainnet
+    const ybotContract = new ethers.Contract(ybotTokenAddress, ERC20_ABI, provider);
 
-    console.log('🌐 Making backend proxy API call to:', transfersUrl.replace(/eyJ[^"]*/, '***'));
+    // Query Transfer events involving the fundraiser
+    const filter = ybotContract.filters.Transfer(null, fundraiserAddress); // to fundraiser (buys)
+    const filter2 = ybotContract.filters.Transfer(fundraiserAddress, null); // from fundraiser (sells)
 
-    const response = await fetch(transfersUrl);
+    const [buyEvents, sellEvents] = await Promise.all([
+      ybotContract.queryFilter(filter, 0, "latest"),
+      ybotContract.queryFilter(filter2, 0, "latest")
+    ]);
 
-    console.log('📡 Proxy Response status:', response.status, response.statusText);
+    const allEvents = [...buyEvents, ...sellEvents];
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Proxy Error response:', errorText);
-      throw new Error(`Proxy API error: ${response.status}`);
-    }
+    console.log('📦 Found', allEvents.length, 'transfer events');
 
-    const data = await response.json();
-    console.log('📦 Raw API response:', {
-      totalResults: data.result?.length || 0,
-      hasResult: !!data.result,
-      resultType: typeof data.result
-    });
-
-    // Filter transfers involving the fundraiser contract
+    // Process events
     const tradeEvents: TradeEvent[] = [];
 
-    if (data.result && Array.isArray(data.result)) {
-      console.log('🔍 Processing', data.result.length, 'transfers...');
+    for (const event of allEvents) {
+      const fromAddr = event.args?.from?.toLowerCase();
+      const toAddr = event.args?.to?.toLowerCase();
+      const fundraiserAddr = fundraiserAddress.toLowerCase();
 
-      for (const transfer of data.result) {
-        const fromAddr = transfer.from_address?.toLowerCase();
-        const toAddr = transfer.to_address?.toLowerCase();
-        const fundraiserAddr = fundraiserAddress.toLowerCase();
+      // Only include transfers to/from the fundraiser
+      if ((fromAddr === fundraiserAddr || toAddr === fundraiserAddr) && event.args) {
+        // Get token amount
+        const tokenAmount = ethers.formatUnits(event.args.value, 18);
 
-        // Only include transfers to/from the fundraiser (these are buys/sells)
-        if (fromAddr === fundraiserAddr || toAddr === fundraiserAddr) {
-          console.log('✅ Found matching transfer!');
+        // Determine if this is a buy or sell
+        const isBuy = fromAddr === fundraiserAddr; // Tokens leaving fundraiser = buy
+        const traderAddress = isBuy ? toAddr : fromAddr;
 
-          // Convert wei to tokens (YBOT has 18 decimals)
-          const tokenAmount = ethers.formatUnits(transfer.value, 18);
+        // Estimate USD (rough calculation - could be improved with historical price)
+        const estimatedPrice = 0.15; // Rough estimate
+        const estimatedUsd = parseFloat(tokenAmount) * estimatedPrice;
 
-          // Determine if this is a buy or sell
-          const isBuy = fromAddr === fundraiserAddr; // Tokens leaving fundraiser = buy
-          const traderAddress = isBuy ? toAddr : fromAddr;
+        // Get block timestamp
+        const block = await provider.getBlock(event.blockNumber);
+        const timestamp = block ? new Date(block.timestamp * 1000) : new Date();
 
-          // For buys: we don't have USD amount from transfer, estimate from token amount
-          // For sells: we don't have USD received from transfer, estimate from token amount
-          // Use a rough average price estimate (this could be improved)
-          const estimatedPrice = 0.15; // Rough estimate, could be calculated from contract
-          const estimatedUsd = parseFloat(tokenAmount) * estimatedPrice;
-
-          // Get block timestamp
-          const blockTimestamp = transfer.block_timestamp;
-          const timestamp = blockTimestamp ? new Date(blockTimestamp) : new Date();
-
-          tradeEvents.push({
-            type: isBuy ? 'buy' : 'sell',
-            address: traderAddress,
-            usdAmount: estimatedUsd.toFixed(2),
-            tokenAmount: parseFloat(tokenAmount).toFixed(2),
-            price: estimatedPrice.toFixed(4),
-            timestamp,
-            txHash: transfer.transaction_hash
-          });
-        }
+        tradeEvents.push({
+          type: isBuy ? 'buy' : 'sell',
+          address: traderAddress,
+          usdAmount: estimatedUsd.toFixed(2),
+          tokenAmount: parseFloat(tokenAmount).toFixed(2),
+          price: estimatedPrice.toFixed(4),
+          timestamp,
+          txHash: event.transactionHash
+        });
       }
-    } else {
-      console.warn('⚠️ No result array in API response');
     }
 
     console.log('✅ Processed', tradeEvents.length, 'trade events');
@@ -806,16 +789,16 @@ const fetchYBOTTokenTransfers = async (
     return tradeEvents.slice(0, limit);
 
   } catch (error) {
-    console.error('❌ Failed to fetch YBOT transfers:', error);
+    console.error('❌ Failed to fetch YBOT transfers on-chain:', error);
     return [];
   }
 };
 
 /**
- * Fetch contract events using hybrid approach optimized for production:
- * 1. Try to get very recent events from RPC (last 3 blocks only)
- * 2. Supplement with realistic mock data based on contract stats
- * 3. Prioritize Moralis if available, but expect it to fail
+ * Fetch contract events using on-chain approach:
+ * 1. Query ERC20 Transfer events from YBOT token contract
+ * 2. Filter for transfers involving the fundraiser address
+ * 3. Fallback to recent RPC events if needed
  */
 export const fetchContractEvents = async (
   eventType: 'TokensPurchased' | 'TokensSold' | 'all' = 'all',

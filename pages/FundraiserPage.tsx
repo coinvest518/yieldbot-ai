@@ -581,7 +581,7 @@ const FundraiserPage: React.FC = () => {
       const [statsData, leaderboardData, tradeHistory] = await Promise.all([
         getFundraiserStats(), // Now works without wallet connection!
         getLeaderboard(),
-        fetchContractEvents('all', 50) // Fetch REAL trade history from Moralis - PUBLIC DATA
+        fetchContractEvents('all', 50) // Fetch REAL trade history from on-chain data - PUBLIC DATA
       ]);
 
       console.log('📈 Stats loaded:', statsData);
@@ -890,7 +890,7 @@ const FundraiserPage: React.FC = () => {
                   Top Contributors
                 </h2>
                 <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-400">
-                  Real Data via Moralis
+                  Real On-Chain Data
                 </span>
               </div>
               <Leaderboard entries={leaderboard} userAddress={address} />
