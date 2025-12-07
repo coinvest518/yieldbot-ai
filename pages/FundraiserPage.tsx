@@ -580,7 +580,7 @@ const FundraiserPage: React.FC = () => {
       console.log('📊 Loading public data...');
       const [statsData, leaderboardData, tradeHistory] = await Promise.all([
         getFundraiserStats(), // Now works without wallet connection!
-        getLeaderboardOnChain(),
+        getLeaderboard(),
         fetchContractEvents('all', 50) // Fetch REAL trade history from Moralis - PUBLIC DATA
       ]);
 
