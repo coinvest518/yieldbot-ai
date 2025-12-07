@@ -33,6 +33,7 @@ const CONTRACT_ADDRESSES = {
     YBOT_STAKING: import.meta.env.VITE_STAKING_MAINNET || '0x031b7519EB8c864169c3f29B571e47407FA92b5d',
     VENUS_ADAPTER: import.meta.env.VITE_VENUS_ADAPTER_MAINNET || '0x92ef1D8244fc276A13dE03B895dadd0c3fcD01c2',
     PANCAKE_ADAPTER: import.meta.env.VITE_PANCAKE_ADAPTER_MAINNET || '0x5178Accee05D1Cb7a1580B2137cE337B547914C0',
+    ZAP: import.meta.env.VITE_ZAP_MAINNET || '',
     USDC: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', // BSC Mainnet USDC (vault uses this!)
     USDT: '0x55d398326f99059fF775485246999027B3197955', // BSC Mainnet USDT
   },
@@ -41,6 +42,7 @@ const CONTRACT_ADDRESSES = {
     NFT_CONTRACT: import.meta.env.VITE_NFT_CONTRACT_TESTNET || '0x6D0646E2245B33C57E86f7E5F564dFB7b0587469',
     TOKEN_SALE: import.meta.env.VITE_TOKEN_SALE_CONTRACT || '',
     YBOT_VAULT: import.meta.env.VITE_YBOT_VAULT_TESTNET || '0x9041471c2b813e4CCB3a7219aC41D97623E40d3d',
+    ZAP: import.meta.env.VITE_ZAP_TESTNET || '',
     USDT: '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd', // BSC Testnet USDT
   }
 };
@@ -163,7 +165,7 @@ export const connectWallet = async (): Promise<string> => {
   }
 };
 
-export const switchChainToBNB = async (preferMainnet: boolean = false) => {
+export const switchChainToBNB = async (preferMainnet: boolean = true) => {
   const ethereum = getEthereumObject();
   if (!ethereum) return; // Skip in mock mode
 
@@ -211,6 +213,26 @@ export const getUSDTBalance = async (address: string): Promise<string> => {
     return formatted;
   } catch (error) {
     console.error('Failed to fetch USDT balance:', error);
+    return "0";
+  }
+};
+
+// Get BNB balance for a wallet
+export const getBNBBalance = async (address: string): Promise<string> => {
+  const ethereum = getEthereumObject();
+  if (!ethereum) {
+    console.log('[MOCK] Fetching BNB balance for', address);
+    return "0";
+  }
+
+  try {
+    const provider = new ethers.BrowserProvider(ethereum);
+    const balance = await provider.getBalance(address);
+    const formatted = ethers.formatEther(balance);
+    console.log('BNB Balance:', formatted);
+    return formatted;
+  } catch (error) {
+    console.error('Failed to fetch BNB balance:', error);
     return "0";
   }
 };

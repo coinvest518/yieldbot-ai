@@ -212,9 +212,9 @@ const StakingPage: React.FC = () => {
 
   const handleSwitchNetwork = async () => {
     try {
-      await switchChainToBNB(false); // false = testnet
+      await switchChainToBNB(true); // true = mainnet
     } catch (e: any) {
-      setError('Failed to switch network. Please switch to BSC Testnet manually.');
+      setError('Failed to switch network. Please switch to BSC Mainnet manually.');
     }
   };
 

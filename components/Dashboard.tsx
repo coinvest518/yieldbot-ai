@@ -2,23 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { RefreshCw, TrendingUp, Shield, Wallet, Lock, ArrowUpRight, CheckCircle, Award, Sparkles, Loader2, ExternalLink } from 'lucide-react';
 import { WalletState, UserFinanceData, VaultStats, TIERS, NFTItem } from '../types';
-import { investInVault, mintCreditScoreSBT, claimYields, connectWallet, getYBOTBalance, getUSDTBalance, approveYBOT, mintNFT, getNFTContractInfo, getVaultUserInfo } from '../services/web3Service';
+import { investInVault, mintCreditScoreSBT, claimYields, connectWallet, getYBOTBalance, getUSDTBalance, getBNBBalance, approveYBOT, mintNFT, getNFTContractInfo, getVaultUserInfo } from '../services/web3Service';
 import { uploadToPinata, base64ToBlob, uploadMetadataToPinata } from '../services/pinataService';
 import { getNativeBalance, fetchWalletNFTs } from '../services/moralisService';
 import { mockFetchUserFinance, mockFetchVaultStats, drawCreditCard, getTierFromScore, drawAccessKey } from '../services/yieldService';
 import { generateLayeredNFT, getTierFromRarity } from '../services/layerGenService';
 import { getPrices } from '../services/priceService';
 import { getFundraiserStats, buyWithBnb, FUNDRAISER_CONSTANTS, type FundraiserStats } from '../services/fundraiserService';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
 import Gallery from './Gallery';
 
 const Dashboard: React.FC = () => {
   const { address, isConnected } = useAccount();
   const { open } = useAppKit();
+  const chainId = useChainId();
   const [userData, setUserData] = useState<UserFinanceData | null>(null);
   const [vaultStats, setVaultStats] = useState<VaultStats | null>(null);
   const [investAmount, setInvestAmount] = useState<string>('');
+  const [depositToken, setDepositToken] = useState<'USDC' | 'BNB'>('USDC');
   const [loading, setLoading] = useState(false);
   const [mintingKey, setMintingKey] = useState(false);
   const [cardImage, setCardImage] = useState<string | null>(null);
@@ -64,6 +66,9 @@ const Dashboard: React.FC = () => {
         // Fetch USDT balance
         const usdtBal = await getUSDTBalance(address);
         
+        // Fetch BNB balance
+        const bnbBal = await getBNBBalance(address);
+        
         // Try to fetch real vault data
         let stakedAmount = '0.00';
         let pendingYield = '0.00';
@@ -79,6 +84,7 @@ const Dashboard: React.FC = () => {
           ...finance, 
           balanceBNB: realBalance,
           usdtBalance: usdtBal,
+          bnbBalance: bnbBal,
           stakedAmount: stakedAmount,
           pendingYield: pendingYield
         };
@@ -101,11 +107,16 @@ const Dashboard: React.FC = () => {
       }
     };
     loadData();
-  }, [isConnected, address]);
+  }, [isConnected, address, chainId]);
 
   const handleInvest = async () => {
     if (!investAmount || parseFloat(investAmount) <= 0) return;
     if (!address) return;
+    
+    if (depositToken === 'BNB') {
+      alert('BNB deposits coming soon! Please use USDC for now.');
+      return;
+    }
     
     setLoading(true);
     try {
@@ -135,7 +146,7 @@ const Dashboard: React.FC = () => {
       setInvestAmount('');
     } catch (e) {
       console.error('Deposit failed:', e);
-      alert('Deposit failed. Make sure you have enough USDT and 100 YBOT for vault access.');
+      alert('Deposit failed. Make sure you have enough USDC and 100 YBOT for vault access.');
     } finally {
       setLoading(false);
     }
@@ -370,11 +381,11 @@ const Dashboard: React.FC = () => {
                   <div className="flex justify-between items-start mb-8">
                      <div>
                         <h3 className="text-2xl font-bold text-white mb-1">yBot Yield Vault</h3>
-                        <p className="text-ybot-muted text-sm">Deposit USDT → Earn YBOT rewards via Venus & PancakeSwap strategies.</p>
+                        <p className="text-ybot-muted text-sm">Deposit USDC or BNB → Earn YBOT rewards via Venus & PancakeSwap strategies.</p>
                      </div>
                      <div className="text-right">
                         <p className="text-sm text-ybot-muted">Your Deposited Balance</p>
-                        <p className="text-3xl font-display font-bold text-white">{userData?.stakedAmount || '0.00'} <span className="text-lg text-ybot-muted">USDT</span></p>
+                        <p className="text-3xl font-display font-bold text-white">{userData?.stakedAmount || '0.00'} <span className="text-lg text-ybot-muted">USDC</span></p>
                      </div>
                   </div>
 
@@ -392,9 +403,34 @@ const Dashboard: React.FC = () => {
                      <div className="space-y-8">
                         <div className="bg-ybot-card p-6 rounded-xl border border-white/5">
                            <div className="flex justify-between mb-2">
-                              <label className="text-sm text-gray-400 font-bold">💰 Deposit USDT</label>
-                              <span className="text-sm text-gray-400">Available: {userData?.usdtBalance || '0.00'} USDT</span>
+                              <label className="text-sm text-gray-400 font-bold">💰 Deposit {depositToken}</label>
+                              <span className="text-sm text-gray-400">Available: {depositToken === 'USDC' ? (userData?.usdtBalance || '0.00') : (userData?.bnbBalance || '0.00')} {depositToken}</span>
                            </div>
+                           
+                           {/* Token Selection */}
+                           <div className="flex gap-2 mb-4">
+                              <button
+                                 onClick={() => setDepositToken('USDC')}
+                                 className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                                    depositToken === 'USDC'
+                                       ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-400'
+                                       : 'bg-slate-700 text-gray-400 hover:bg-slate-600'
+                                 }`}
+                              >
+                                💵 USDC
+                              </button>
+                              <button
+                                 onClick={() => setDepositToken('BNB')}
+                                 className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                                    depositToken === 'BNB'
+                                       ? 'bg-yellow-500/20 border-2 border-yellow-500 text-yellow-400'
+                                       : 'bg-slate-700 text-gray-400 hover:bg-slate-600'
+                                 }`}
+                              >
+                                🔶 BNB
+                              </button>
+                           </div>
+                           
                            <div className="flex gap-4">
                               <input 
                                  type="number" 
@@ -415,7 +451,7 @@ const Dashboard: React.FC = () => {
                               * Requires 100 YBOT to access vault. 0.1% deposit fee applies.
                            </p>
                            <div className="mt-3 p-3 bg-ybot-dark/50 rounded-lg border border-ybot-cyan/20">
-                              <p className="text-xs text-ybot-cyan">💡 <strong>How it works:</strong> Your USDT is deployed to Venus (lending) and PancakeSwap (LP farming). You earn YBOT tokens as rewards.</p>
+                              <p className="text-xs text-ybot-cyan">💡 <strong>How it works:</strong> Your {depositToken} is deployed to Venus (lending) and PancakeSwap (LP farming). You earn YBOT tokens as rewards.</p>
                            </div>
                         </div>
 

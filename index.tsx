@@ -34,7 +34,7 @@ const queryClient = new QueryClient();
 createAppKit({
   adapters: [wagmiAdapter],
   networks,
-  defaultNetwork: bscTestnet, // Default to testnet for safety
+  defaultNetwork: bsc, // Default to mainnet for production
   metadata,
   projectId,
   features: {

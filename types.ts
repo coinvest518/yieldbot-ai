@@ -8,6 +8,7 @@ export interface UserFinanceData {
   balanceBNB: string;
   balanceYBOT: string;
   usdtBalance: string; // USDT balance for vault deposits
+  bnbBalance: string; // BNB balance for vault deposits
   stakedAmount: string; // USDT deposited in vault
   pendingYield: string; // Pending YBOT rewards
   creditScore: number;

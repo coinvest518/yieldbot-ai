@@ -23,7 +23,7 @@ import {
   Zap,
   Clock,
 } from 'lucide-react';
-import { useAccount, useBalance } from 'wagmi';
+import { useAccount, useBalance, useChainId } from 'wagmi';
 import { formatUnits } from 'viem';
 import {
   getFundraiserStats,
@@ -512,6 +512,7 @@ const TradeInterface: React.FC<TradeInterfaceProps> = ({ stats, userData, onTrad
 
 const FundraiserPage: React.FC = () => {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   
   const [stats, setStats] = useState<FundraiserStats | null>(null);
   const [userData, setUserData] = useState<UserFundraiserData>({ contribution: '0', tokenBalance: '0' });
@@ -557,7 +558,7 @@ const FundraiserPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [address, isConnected]);
+  }, [address, isConnected, chainId]);
 
   useEffect(() => {
     loadData();
