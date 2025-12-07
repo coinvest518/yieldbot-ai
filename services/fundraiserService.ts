@@ -1,3 +1,40 @@
+// On-chain leaderboard: fetch TokensPurchased events directly from the blockchain
+export const getLeaderboardOnChain = async (limit = 10) => {
+  const provider = new ethers.JsonRpcProvider("https://bsc-dataseed.binance.org/"); // BSC mainnet
+  const contract = new ethers.Contract(FUNDRAISER_ADDRESSES.mainnet, FUNDRAISER_ABI, provider);
+  // Get all TokensPurchased events
+  const filter = contract.filters.TokensPurchased();
+  // You can set a fromBlock for performance, e.g. contract deployment block
+  const events = await contract.queryFilter(filter, 0, "latest");
+  // Aggregate by buyer address
+  const contributions = new Map();
+  for (const ev of events) {
+    const buyer = ev.args?.buyer?.toLowerCase();
+    const usd = parseFloat(ethers.formatUnits(ev.args?.usdAmount || 0, 18));
+    const tokens = parseFloat(ethers.formatUnits(ev.args?.tokensMinted || 0, 18));
+    if (!buyer) continue;
+    const existing = contributions.get(buyer) || { usd: 0, tokens: 0 };
+    existing.usd += usd;
+    existing.tokens += tokens;
+    contributions.set(buyer, existing);
+  }
+  // Sort and format
+  const sorted = Array.from(contributions.entries())
+    .sort((a, b) => b[1].usd - a[1].usd)
+    .slice(0, limit);
+  if (sorted.length === 0) {
+    return [
+      { rank: 1, address: 'No contributors yet', fullAddress: '', contribution: '$0.00', tokens: '0' },
+    ];
+  }
+  return sorted.map(([address, data], index) => ({
+    rank: index + 1,
+    address: `${address.slice(0, 6)}...${address.slice(-4)}`,
+    fullAddress: address,
+    contribution: `$${data.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    tokens: data.tokens.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+  }));
+};
 /**
  * Fundraiser Service - Bonding Curve Token Sale
  * Connects frontend to BondingCurveFundraiser contract
