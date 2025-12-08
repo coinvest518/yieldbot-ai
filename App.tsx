@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Dashboard from './components/Dashboard';
 import Features from './components/Features';
+import BankingComparison from './components/BankingComparison';
 import Roadmap from './components/Roadmap';
 import Footer from './components/Footer';
 import YieldStrategyDashboard from './components/YieldStrategyDashboard';
@@ -85,6 +86,7 @@ const HomePage: React.FC = () => {
         </section>
 
         <Features />
+        <BankingComparison />
         <Roadmap />
       </main>
       <Footer />

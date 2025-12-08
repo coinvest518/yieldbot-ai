@@ -5,23 +5,23 @@ const Features: React.FC = () => {
   const features = [
     {
       icon: <Zap className="w-8 h-8 text-ybot-gold" />,
-      title: "Automated Yield Vault",
-      desc: "Simply hold YBOT. A 2% tax on every transaction is automatically routed to our high-yield vault, compounding wealth for all holders."
+      title: "12%+ APY vs 0.01% Banks",
+      desc: "Earn up to 24x more than traditional savings accounts. AI agents automatically rebalance your funds across Venus, PancakeSwap, and Beefy for maximum yield—no manual work required."
     },
     {
       icon: <ShieldCheck className="w-8 h-8 text-ybot-cyan" />,
-      title: "Soulbound Credit",
-      desc: "Your financial behavior is recorded on-chain. Build a permanent, non-transferable credit score to prove your trustworthiness."
+      title: "Build Credit, Not Debt",
+      desc: "Every deposit increases your Soulbound Credit Score. Unlike banks that profit from your debt, yBot rewards you for saving and responsible DeFi participation."
     },
     {
       icon: <Banknote className="w-8 h-8 text-green-400" />,
-      title: "Under-Collateralized Loans",
-      desc: "Platinum Tier holders can access borrowing pools with significantly lower collateral requirements based on their SBT score."
+      title: "Smart Wallet Integration",
+      desc: "Deposit with any token, buy crypto with your credit card, and recover your wallet without seed phrases. DeFi made as easy as Venmo."
     },
     {
       icon: <LineChart className="w-8 h-8 text-ybot-primary" />,
-      title: "Liquidity Growth",
-      desc: "3% of every transaction creates a rising price floor by auto-injecting liquidity into the BNB/YBOT pair."
+      title: "Unlock Borrowing Power",
+      desc: "High credit score? Access under-collateralized loans like a DeFi credit card. Borrow without locking up all your assets—powered by your on-chain reputation."
     }
   ];
 
@@ -29,10 +29,11 @@ const Features: React.FC = () => {
     <section id="credit" className="py-24 bg-ybot-dark border-t border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16 text-center lg:text-left">
-          <span className="text-ybot-primary font-bold tracking-wider uppercase text-sm">Ecosystem</span>
-          <h2 className="text-4xl font-display font-bold text-white mt-2 mb-6">Built for <span className="text-ybot-gold">Longevity</span></h2>
+          <span className="text-ybot-primary font-bold tracking-wider uppercase text-sm">Why yBot Beats Traditional Banking</span>
+          <h2 className="text-4xl font-display font-bold text-white mt-2 mb-6">Your Money, <span className="text-ybot-gold">Working Harder</span></h2>
           <p className="text-ybot-muted max-w-2xl mx-auto lg:mx-0 text-lg">
-            We aren't just creating a token; we are building an on-chain reputation layer for the future of decentralized finance.
+            Banks keep your money locked up earning pennies while they profit. yBot puts you in control with AI-powered yield strategies, 
+            credit building, and smart wallet technology—all while earning 12%+ APY.
           </p>
         </div>
 

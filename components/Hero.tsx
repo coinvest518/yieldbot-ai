@@ -20,18 +20,18 @@ const Hero: React.FC = () => {
           <div className="lg:col-span-7 text-center lg:text-left z-20">
             <div className="inline-flex items-center px-4 py-1.5 rounded-full border border-ybot-gold/30 bg-ybot-gold/10 text-ybot-gold text-xs font-mono font-bold tracking-widest uppercase mb-8">
               <span className="flex h-2 w-2 rounded-full bg-ybot-gold mr-2 animate-pulse"></span>
-              APY Protocol Live
+              12%+ APY • AI-Powered • Credit Building
             </div>
             
             <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight text-white mb-6 leading-[1.1]">
-              Automate Your <br />
-              <span className="text-gradient">Financial Future</span>
+              Build Credit <br />
+              <span className="text-gradient">While You Save</span>
             </h1>
             
             <p className="mt-4 text-lg text-ybot-muted mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light">
-              yBot isn't just a token. It's an automated investment engine. 
-              Hold $YBOT to access the Vault, earn yields from diversified DeFi strategies, 
-              and build your <strong>Soulbound Credit Score</strong> to unlock borrowing power.
+              Traditional banks give you 0.01% interest and charge fees. <strong className="text-white">yBot gives you 12%+ APY</strong> while building your on-chain credit score. 
+              Powered by <strong className="text-ybot-cyan">AI agents</strong> and <strong className="text-ybot-cyan">smart wallets</strong>, 
+              your money works harder—automatically earning, compounding, and unlocking <strong className="text-ybot-gold">borrowing power</strong> without the middleman.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
