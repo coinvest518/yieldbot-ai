@@ -7,13 +7,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Users,
   Activity,
   ArrowLeft,
-  ArrowUpRight,
-  ArrowDownRight,
   RefreshCw,
   Info,
   ExternalLink,
@@ -21,7 +16,6 @@ import {
   Target,
   Trophy,
   Zap,
-  Clock,
 } from 'lucide-react';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 import { formatUnits } from 'viem';
@@ -34,9 +28,8 @@ import {
   sellTokens,
   generateBondingCurveData,
   getLeaderboard,
-  subscribeToPurchaseEvents,
-  fetchContractEvents,
   FUNDRAISER_CONSTANTS,
+  FUNDRAISER_ADDRESSES,
   type FundraiserStats,
   type UserFundraiserData,
   type TradeEvent,
@@ -576,13 +569,11 @@ const FundraiserPage: React.FC = () => {
     console.log('🔄 loadData called, isConnected:', isConnected, 'address:', address);
     setLoading(true);
     try {
-      // Load public data first (stats, trade history, leaderboard) - no wallet needed
+      // Load public data (contract state only)
       console.log('📊 Loading public data...');
-      const [statsData, leaderboardData, tradeHistory] = await Promise.all([
-        getFundraiserStats(), // Now works without wallet connection!
-        getLeaderboard(),
-        fetchContractEvents('all', 50) // Fetch REAL trade history from on-chain data - PUBLIC DATA
-      ]);
+      const statsData = await getFundraiserStats();
+      const leaderboardData = await getLeaderboard(statsData);
+      const tradeHistory: TradeEvent[] = [];
 
       console.log('📈 Stats loaded:', statsData);
       console.log('🏆 Leaderboard loaded:', leaderboardData.length, 'entries');
@@ -635,26 +626,13 @@ const FundraiserPage: React.FC = () => {
   useEffect(() => {
     loadData();
     
-    // Only subscribe to live events and poll when wallet is connected
-    // This prevents unnecessary blockchain calls when user is just browsing
-    if (!isConnected) {
-      return;
-    }
-
-    // Subscribe to live events
-    const unsubscribe = subscribeToPurchaseEvents((event) => {
-      setTrades((prev) => [event, ...prev].slice(0, 50));
-      loadData(); // Refresh stats
-    });
-
     // Refresh every 30 seconds
     const interval = setInterval(loadData, 30000);
 
     return () => {
-      unsubscribe();
       clearInterval(interval);
     };
-  }, [loadData, isConnected]);
+  }, [loadData]);
 
   if (loading && !stats) {
     return (
@@ -793,20 +771,44 @@ const FundraiserPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Live Trade Feed */}
+            {/* Live Stats */}
             <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-green-400" />
-                  Live Trades
-                  <span className="ml-2 px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded text-xs text-green-400 font-normal flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    LIVE from Blockchain
-                  </span>
-                </h2>
-                <span className="text-xs text-gray-500">{trades.length} trades</span>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
+                <Activity className="w-5 h-5 text-green-400" />
+                Live Stats
+              </h2>
+              <div className="space-y-3">
+                <div className="bg-slate-800/50 rounded-lg p-4">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-400">Tokens Sold</span>
+                    <span className="text-white font-bold">{stats?.totalTokensSold ? parseFloat(stats.totalTokensSold).toFixed(0) : '0'} YBOT</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">USD Raised</span>
+                    <span className="text-green-400 font-bold">${stats?.totalUsdRaised || '0'}</span>
+                  </div>
+                </div>
+                <div className="bg-slate-800/50 rounded-lg p-4">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-400">Current Price</span>
+                    <span className="text-purple-400 font-bold">${stats ? parseFloat(stats.currentPrice).toFixed(6) : '0'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">BNB Price</span>
+                    <span className="text-yellow-400 font-bold">${stats ? parseFloat(stats.bnbPrice).toFixed(2) : '0'}</span>
+                  </div>
+                </div>
+                <a
+                  href={`https://bscscan.com/address/${FUNDRAISER_ADDRESSES.mainnet}#events`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-center hover:bg-blue-500/20 transition-colors"
+                >
+                  <p className="text-blue-400 text-sm flex items-center justify-center gap-2">
+                    View All Transactions <ExternalLink className="w-4 h-4" />
+                  </p>
+                </a>
               </div>
-              <TradeFeed trades={trades} />
             </div>
 
             {/* How It Works */}
