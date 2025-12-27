@@ -41,7 +41,10 @@ createAppKit({
     analytics: true,
     email: false,
     socials: []
-  }
+  },
+  // CRITICAL: Disable auto-connection to prevent MetaMask popup spam
+  autoConnect: false,      // Do NOT auto-reconnect to previous wallet sessions
+  showQrModal: false       // Do NOT show QR modals automatically
 });
 
 const rootElement = document.getElementById('root');
