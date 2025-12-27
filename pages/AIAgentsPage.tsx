@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import Navbar from '../components/Navbar';
 import {
   Bot,
   Play,
@@ -193,9 +194,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, isExpanded, onTo
     isConnected: true
   } : undefined;
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom of chat messages only
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages]);
 
   // Initialize AI only when user first sends a message (lazy load)
@@ -733,63 +734,51 @@ const AIAgentsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-ybot-dark">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-ybot-dark/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <ArrowLeft size={20} />
-                <span className="hidden sm:inline">Back to Dashboard</span>
-              </Link>
-              <div className="h-6 w-px bg-slate-700"></div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-display font-bold text-xl text-white">
-                  AI <span className="text-purple-400">Agents</span>
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Quick Stats */}
-              <div className="hidden sm:flex items-center gap-4 px-4 py-2 bg-slate-800/50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-400">{activeAgents} Active</span>
-                </div>
-                <div className="h-4 w-px bg-slate-700"></div>
-                <span className={`text-sm font-medium ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {totalPnL >= 0 ? '+' : ''}${totalPnL.toFixed(2)} P&L
-                </span>
-              </div>
-              
-              {/* Wallet Status */}
-              {isConnected ? (
-                <div className="flex items-center gap-2 px-3 py-2 bg-green-500/20 rounded-lg">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-green-400">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/20 rounded-lg">
-                  <AlertTriangle size={14} className="text-yellow-400" />
-                  <span className="text-sm text-yellow-400">Wallet not connected</span>
-                </div>
-              )}
+      <Navbar />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
+        {/* Page Title Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-gray-400 hover:text-white">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <Bot className="w-7 h-7 text-purple-500" />
+              <h1 className="text-2xl font-bold text-white">AI <span className="text-purple-400">Agents</span></h1>
             </div>
           </div>
+          
+          <div className="flex items-center gap-3">
+            {/* Quick Stats */}
+            <div className="hidden sm:flex items-center gap-4 px-4 py-2 bg-slate-800/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-400">{activeAgents} Active</span>
+              </div>
+              <div className="h-4 w-px bg-slate-700"></div>
+              <span className={`text-sm font-medium ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {totalPnL >= 0 ? '+' : ''}${totalPnL.toFixed(2)} P&L
+              </span>
+            </div>
+            
+            {/* Wallet Status */}
+            {isConnected ? (
+              <div className="flex items-center gap-2 px-3 py-2 bg-green-500/20 rounded-lg">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-green-400 hidden sm:inline">
+                  {address?.slice(0, 6)}...{address?.slice(-4)}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/20 rounded-lg">
+                <AlertTriangle size={14} className="text-yellow-400" />
+                <span className="text-sm text-yellow-400 hidden sm:inline">Not connected</span>
+              </div>
+            )}
+          </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column - Chat Interface */}
           <div>

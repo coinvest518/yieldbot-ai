@@ -16,7 +16,10 @@ import {
   Target,
   Trophy,
   Zap,
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
+import Navbar from '../components/Navbar';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 import { formatUnits } from 'viem';
 import {
@@ -432,7 +435,7 @@ const TradeInterface: React.FC<TradeInterfaceProps> = ({ stats, userData, onTrad
                     setAmount((parseFloat(bnbBalanceFormatted) * 0.95).toFixed(4)); // Leave gas
                   }
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 bg-purple-500/30 text-purple-400 rounded text-sm"
+                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-sm transition-colors"
               >
                 MAX
               </button>
@@ -647,56 +650,44 @@ const FundraiserPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-ybot-dark">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-ybot-dark/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <ArrowLeft size={20} />
-                <span className="hidden sm:inline">Back to Dashboard</span>
-              </Link>
-              <div className="h-6 w-px bg-slate-700"></div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <Coins className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-display font-bold text-xl text-white">
-                  YBOT <span className="text-purple-400">Fundraiser</span>
-                </span>
-              </div>
+      <Navbar />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
+        {/* Page Title Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-gray-400 hover:text-white">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <Coins className="w-7 h-7 text-purple-500" />
+              <h1 className="text-2xl font-bold text-white">YBOT <span className="text-purple-400">Fundraiser</span></h1>
             </div>
-            
-            {/* Quick Stats */}
-            <div className="hidden md:flex items-center gap-6">
-              <div className="text-center">
-                <p className="text-xs text-gray-500">Current Price</p>
-                <p className="text-lg font-bold text-purple-400">
-                  ${stats ? parseFloat(stats.currentPrice).toFixed(4) : '0.10'}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-gray-500">Total Raised</p>
-                <p className="text-lg font-bold text-green-400">
-                  ${stats?.totalUsdRaised || '0'}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-gray-500">Your YBOT</p>
-                <p className="text-lg font-bold text-white">
-                  {parseFloat(ybotBalance).toFixed(0)}
-                </p>
-              </div>
+          </div>
+          
+          {/* Quick Stats */}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-xs text-gray-500">Current Price</p>
+              <p className="text-base font-bold text-purple-400">
+                ${stats ? parseFloat(stats.currentPrice).toFixed(4) : '0.10'}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">Total Raised</p>
+              <p className="text-base font-bold text-green-400">
+                ${stats?.totalUsdRaised || '0'}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">Your YBOT</p>
+              <p className="text-base font-bold text-white">
+                {parseFloat(ybotBalance).toFixed(0)}
+              </p>
             </div>
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
         {/* Progress Banner */}
         <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-6 mb-8 border border-purple-500/30">
           <div className="flex items-center justify-between mb-4">
