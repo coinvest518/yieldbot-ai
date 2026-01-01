@@ -20,6 +20,7 @@ import {
   ArrowDownRight,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import ClaimReward from '../components/ClaimReward';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 import { formatUnits } from 'viem';
 import {
@@ -844,6 +845,9 @@ const FundraiserPage: React.FC = () => {
                 onTrade={loadData}
               />
             )}
+
+            {/* Claim Gleam Reward */}
+            <ClaimReward />
 
             {/* Your Position */}
             {isConnected && (
