@@ -1,6 +1,6 @@
 /**
  * AI Service - Powers the YBOT Trading Agents
- * Uses Google Gemini for intelligent decision making
+ * Uses Mistral AI and HuggingFace for intelligent decision making
  */
 
 // ============ TYPES ============
@@ -58,21 +58,18 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-// ============ GEMINI API ============
-
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+// ============ MULTI-PROVIDER AI API ============
 
 class AIService {
-  private apiKey: string;
+  private mistralKey: string;
+  private hfToken: string;
   private chatHistory: ChatMessage[] = [];
   private systemPrompt: string;
 
   constructor() {
-    // Try to get API key from env - ElizaOS standardized naming
-    this.apiKey = import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY || 
-                  import.meta.env.VITE_GEMINI_API_KEY || '';
+    this.mistralKey = import.meta.env.VITE_MISTRAL_API_KEY || '';
+    this.hfToken = import.meta.env.VITE_HF_TOKEN || '';
     
-    // System prompt that defines the agent's personality and capabilities
     this.systemPrompt = `You are YBOT, an expert DeFi trading AI assistant specialized in BSC (BNB Chain) yield farming and automated trading strategies.
 
 Your capabilities:
@@ -99,17 +96,15 @@ Important rules:
 When analyzing opportunities, always structure your response as JSON when asked for recommendations.`;
   }
 
-  // Set API key (can be called from UI if user provides their own key)
-  setApiKey(key: string) {
-    this.apiKey = key;
+  setApiKey(key: string, provider: 'mistral' | 'hf' = 'mistral') {
+    if (provider === 'mistral') this.mistralKey = key;
+    else if (provider === 'hf') this.hfToken = key;
   }
 
-  // Check if API is configured
   isConfigured(): boolean {
-    return !!this.apiKey && this.apiKey.length > 10;
+    return !!(this.mistralKey || this.hfToken);
   }
 
-  // Main analysis function - analyzes market and returns recommendations
   async analyzeMarket(request: AIAnalysisRequest): Promise<AIAnalysisResponse> {
     if (!this.isConfigured()) {
       return this.getMockAnalysis(request);
@@ -156,7 +151,7 @@ Provide your analysis as JSON with this structure:
 `;
 
     try {
-      const response = await this.callGemini(prompt);
+      const response = await this.callAI(prompt);
       const parsed = this.parseAnalysisResponse(response);
       return parsed;
     } catch (error) {
@@ -165,9 +160,7 @@ Provide your analysis as JSON with this structure:
     }
   }
 
-  // Chat function - for interactive conversations with the agent
   async chat(userMessage: string, context?: Partial<AIAnalysisRequest>): Promise<string> {
-    // Add user message to history
     this.chatHistory.push({
       role: 'user',
       content: userMessage,
@@ -184,7 +177,6 @@ Provide your analysis as JSON with this structure:
       return mockResponse;
     }
 
-    // Build conversation context
     const conversationHistory = this.chatHistory.slice(-10).map(msg => 
       `${msg.role === 'user' ? 'User' : 'YBOT'}: ${msg.content}`
     ).join('\n');
@@ -206,7 +198,7 @@ ${conversationHistory}
 Respond naturally to the user's latest message. Be helpful and informative.`;
 
     try {
-      const response = await this.callGemini(prompt);
+      const response = await this.callAI(prompt);
       
       this.chatHistory.push({
         role: 'assistant',
@@ -227,7 +219,6 @@ Respond naturally to the user's latest message. Be helpful and informative.`;
     }
   }
 
-  // Get quick market insight
   async getQuickInsight(opportunities: AIAnalysisRequest['availableOpportunities']): Promise<string> {
     if (!this.isConfigured()) {
       const best = opportunities[0];
@@ -242,53 +233,69 @@ Focus on the best opportunity and any notable risks. Keep it under 100 words.
 `;
 
     try {
-      return await this.callGemini(prompt);
+      return await this.callAI(prompt);
     } catch {
       const best = opportunities[0];
       return `Top opportunity: ${best?.protocol} ${best?.pool} at ${best?.apy?.toFixed(1)}% APY`;
     }
   }
 
-  // Call Gemini API
-  private async callGemini(prompt: string): Promise<string> {
-    const response = await fetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        },
-        safetySettings: [
-          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+  private async callAI(prompt: string): Promise<string> {
+    // Try Mistral first
+    if (this.mistralKey) {
+      try {
+        const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.mistralKey}`
+          },
+          body: JSON.stringify({
+            model: 'mistral-small-latest',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+            max_tokens: 2048
+          })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return data.choices?.[0]?.message?.content || 'No response';
+        }
+      } catch (e) {
+        console.warn('Mistral failed, trying fallback');
+      }
     }
 
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated';
+    // Try HuggingFace
+    if (this.hfToken) {
+      try {
+        const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.hfToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'google/gemma-2-2b-it',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 1000,
+            temperature: 0.7
+          })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return data.choices?.[0]?.message?.content || 'No response';
+        }
+      } catch (e) {
+        console.warn('HuggingFace failed');
+      }
+    }
+
+    throw new Error('All AI providers failed');
   }
 
-  // Parse JSON response from Gemini
   private parseAnalysisResponse(text: string): AIAnalysisResponse {
     try {
-      // Try to extract JSON from the response
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
@@ -301,7 +308,6 @@ Focus on the best opportunity and any notable risks. Keep it under 100 words.
       console.warn('Failed to parse AI response as JSON:', e);
     }
 
-    // Fallback response
     return {
       summary: text.slice(0, 200),
       recommendations: [],
@@ -314,7 +320,6 @@ Focus on the best opportunity and any notable risks. Keep it under 100 words.
     };
   }
 
-  // Mock analysis when API not configured
   private getMockAnalysis(request: AIAnalysisRequest): AIAnalysisResponse {
     const bestOpp = request.availableOpportunities[0];
     
@@ -339,7 +344,6 @@ Focus on the best opportunity and any notable risks. Keep it under 100 words.
     };
   }
 
-  // Mock chat response
   private getMockChatResponse(message: string): string {
     const lowerMsg = message.toLowerCase();
     
@@ -356,21 +360,18 @@ Focus on the best opportunity and any notable risks. Keep it under 100 words.
       return "📈 Current top yields on BSC:\n• Venus USDT: ~5-8% APY (low risk)\n• PancakeSwap CAKE-BNB: ~15-25% APY (medium risk)\n• Beefy auto-compound vaults: varies\n\nWould you like detailed analysis on any of these?";
     }
     
-    return "🤖 I'm YBOT, your DeFi assistant. To unlock my full AI capabilities, please configure your Gemini API key in settings. For now, I can still help you monitor yields and manage basic strategies!";
+    return "🤖 I'm YBOT, your DeFi assistant. To unlock my full AI capabilities, please configure your AI provider keys (Mistral or HuggingFace) in settings. For now, I can still help you monitor yields and manage basic strategies!";
   }
 
-  // Get chat history
   getChatHistory(): ChatMessage[] {
     return [...this.chatHistory];
   }
 
-  // Clear chat history
   clearChatHistory() {
     this.chatHistory = [];
   }
 }
 
-// Export singleton instance
 export const aiService = new AIService();
 
 export default aiService;

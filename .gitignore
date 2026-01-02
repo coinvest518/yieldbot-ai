@@ -66,6 +66,10 @@ coverage.json
 .eslintcache
 .vercel
 
+# Documentation and test files
+docs/
+test-*.js
+
 # Generated metadata (can regenerate)
 scripts/output/
 scripts/cache/

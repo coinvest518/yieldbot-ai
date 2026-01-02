@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
+import { useAppKit } from '@reown/appkit/react';
 import { 
   fetchLiveYieldData, 
   getTopPoolsForStrategy,
@@ -7,6 +9,7 @@ import {
   fetchLiveVaultStats,
   type PoolData
 } from '../services/yieldService';
+import { getYBOTBalance } from '../services/web3Service';
 
 interface YieldStrategyDashboardProps {
   investmentAmount?: number;
@@ -15,15 +18,36 @@ interface YieldStrategyDashboardProps {
 const YieldStrategyDashboard: React.FC<YieldStrategyDashboardProps> = ({ 
   investmentAmount = 100 
 }) => {
+  const { address, isConnected } = useAccount();
+  const { open } = useAppKit();
   const [activeStrategy, setActiveStrategy] = useState<'lending' | 'stablecoin' | 'volatile'>('lending');
   const [pools, setPools] = useState<PoolData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [vaultStats, setVaultStats] = useState<any>(null);
+  const [ybotBalance, setYbotBalance] = useState<string>('0');
+  const [selectedPool, setSelectedPool] = useState<PoolData | null>(null);
+  const [showDepositModal, setShowDepositModal] = useState(false);
 
   useEffect(() => {
     loadData();
   }, [activeStrategy]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      loadYBOTBalance();
+    }
+  }, [isConnected, address]);
+
+  const loadYBOTBalance = async () => {
+    if (!address) return;
+    try {
+      const balance = await getYBOTBalance(address);
+      setYbotBalance(balance);
+    } catch (err) {
+      console.error('Failed to load YBOT balance:', err);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -50,6 +74,31 @@ const YieldStrategyDashboard: React.FC<YieldStrategyDashboardProps> = ({
       case 'high': return 'bg-red-500/20 text-red-400 border-red-500/50';
       default: return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
     }
+  };
+
+  const handleDepositClick = async (pool: PoolData) => {
+    // 1. Check wallet connection
+    if (!isConnected) {
+      open();
+      return;
+    }
+
+    // 2. Check YBOT balance (need 100 YBOT for vault access)
+    if (parseFloat(ybotBalance) < 100) {
+      alert('⚠️ You need 100 YBOT to access the vault.\n\nGet YBOT tokens:\n1. Buy via Token Sale page\n2. Swap on DEX');
+      // Optionally redirect to fundraiser
+      window.location.href = '/fundraiser';
+      return;
+    }
+
+    // 3. Show deposit modal
+    setSelectedPool(pool);
+    setShowDepositModal(true);
+  };
+
+  const handleSwapForYBOT = () => {
+    // Open AppKit swap modal with YBOT as target
+    open({ view: 'Swap' });
   };
 
   const strategyConfig = YIELD_STRATEGIES.find(s => s.id === activeStrategy);
@@ -228,8 +277,11 @@ const YieldStrategyDashboard: React.FC<YieldStrategyDashboardProps> = ({
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <button className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 rounded-lg text-white text-xs transition-all">
-                        Deposit
+                      <button 
+                        onClick={() => handleDepositClick(pool)}
+                        className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 rounded-lg text-white text-xs transition-all flex items-center gap-1"
+                      >
+                        {!isConnected ? '🔗 Connect' : parseFloat(ybotBalance) < 100 ? '🔒 Need YBOT' : '💰 Deposit'}
                       </button>
                     </td>
                   </tr>
@@ -268,6 +320,97 @@ const YieldStrategyDashboard: React.FC<YieldStrategyDashboardProps> = ({
         <br />
         Last updated: {new Date().toLocaleTimeString()}
       </div>
+
+      {/* Deposit Modal */}
+      {showDepositModal && selectedPool && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowDepositModal(false)}>
+          <div className="bg-slate-800 rounded-2xl p-6 max-w-md w-full border border-purple-500/30" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Deposit to {selectedPool.name}</h3>
+              <button onClick={() => setShowDepositModal(false)} className="text-gray-400 hover:text-white">
+                ✕
+              </button>
+            </div>
+
+            <div className="bg-slate-900/50 rounded-lg p-4 mb-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-400">Protocol:</span>
+                <span className="text-white font-medium">{selectedPool.protocol}</span>
+              </div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-400">APY:</span>
+                <span className="text-green-400 font-bold">{selectedPool.apy.toFixed(2)}%</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Risk Level:</span>
+                <span className={`font-medium ${
+                  selectedPool.riskLevel === 'low' ? 'text-green-400' :
+                  selectedPool.riskLevel === 'medium' ? 'text-yellow-400' : 'text-red-400'
+                }`}>{selectedPool.riskLevel.toUpperCase()}</span>
+              </div>
+            </div>
+
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+              <p className="text-blue-300 text-sm">
+                ℹ️ <strong>How it works:</strong>
+              </p>
+              <ol className="text-gray-300 text-xs mt-2 space-y-1 ml-4 list-decimal">
+                <li>Your USDT is deposited to the yBot Vault</li>
+                <li>Vault deploys funds to {selectedPool.protocol}</li>
+                <li>You earn YBOT rewards (10 YBOT per $1 yield)</li>
+                <li>Withdraw anytime from the Dashboard</li>
+              </ol>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowDepositModal(false);
+                  window.location.href = '/#vault';
+                }}
+                className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all"
+              >
+                Go to Vault Dashboard
+              </button>
+              <button
+                onClick={() => setShowDepositModal(false)}
+                className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* YBOT Balance Warning */}
+      {isConnected && parseFloat(ybotBalance) < 100 && (
+        <div className="mt-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1">
+              <h4 className="text-yellow-400 font-bold mb-1">Need 100 YBOT for Vault Access</h4>
+              <p className="text-gray-300 text-sm mb-3">
+                Current balance: <strong>{parseFloat(ybotBalance).toFixed(2)} YBOT</strong>
+              </p>
+              <div className="flex gap-2">
+                <a
+                  href="/fundraiser"
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  Buy YBOT Tokens
+                </a>
+                <button
+                  onClick={handleSwapForYBOT}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  Swap for YBOT
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

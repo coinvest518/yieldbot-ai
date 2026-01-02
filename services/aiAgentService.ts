@@ -1,9 +1,9 @@
 /**
- * AI Agent Service - Powered by Google Gemini
+ * AI Agent Service - Multi-Provider AI
  * Elite DeFi trading intelligence for yBOT.FINANCE
  * 
  * Features:
- * - ElizaOS-style personality system
+ * - Multi-provider AI (Mistral, HuggingFace, MuleRouter)
  * - Wallet-aware context
  * - Trade execution capabilities
  * - Real-time yield data integration
@@ -76,72 +76,268 @@ export interface TradeIntent {
   pool?: string;
 }
 
-// ============ GEMINI AI SERVICE ============
+// ============ MULTI-PROVIDER AI SERVICE WITH ALL CAPABILITIES ============
 
-class GeminiAI {
-  private apiKey: string;
-  private baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
-  private model = YBOT_CHARACTER.settings.model;
-  private conversationMemory: Map<string, ChatMessage[]> = new Map(); // Memory per user
+class MultiProviderAI {
+  private mistralKey: string;
+  private hfToken: string;
+  private hyperBrowserKey: string;
+  private conversationMemory: Map<string, ChatMessage[]> = new Map();
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
+  constructor() {
+    this.mistralKey = import.meta.env.VITE_MISTRAL_API_KEY || '';
+    this.hfToken = import.meta.env.VITE_HF_TOKEN || '';
+    this.hyperBrowserKey = import.meta.env.VITE_HYPERBROWSER_API_KEY || '';
   }
 
-  // Check if API is configured
   isConfigured(): boolean {
-    return !!this.apiKey && this.apiKey.length > 10;
+    return !!(this.mistralKey || this.hfToken);
   }
 
-  async generateContent(prompt: string, systemPrompt?: string): Promise<string> {
-    if (!this.isConfigured()) {
-      throw new Error('API key not configured');
-    }
+  // ============ CHAT COMPLETIONS ============
 
-    const url = `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`;
+  // Mistral AI (Primary - Fast & Accurate)
+  async generateContentMistral(prompt: string, systemPrompt?: string): Promise<string> {
+    const url = 'https://api.mistral.ai/v1/chat/completions';
     
-    const contents = [];
-    
+    const messages = [];
     if (systemPrompt) {
-      contents.push({
-        role: 'user',
-        parts: [{ text: `System Instructions: ${systemPrompt}` }]
-      });
-      contents.push({
-        role: 'model', 
-        parts: [{ text: 'I understand. I am YBOT, the elite DeFi trading AI for yBOT.FINANCE. I will follow these instructions precisely.' }]
-      });
+      messages.push({ role: 'system', content: systemPrompt });
     }
-    
-    contents.push({
-      role: 'user',
-      parts: [{ text: prompt }]
+    messages.push({ role: 'user', content: prompt });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.mistralKey}`
+      },
+      body: JSON.stringify({
+        model: 'mistral-small-latest',
+        messages,
+        temperature: 0.7,
+        max_tokens: 1000
+      })
     });
 
-    try {
+    if (!response.ok) {
+      throw new Error(`Mistral error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || 'No response';
+  }
+
+  // HuggingFace (Backup - Multiple Models)
+  async generateContentHF(prompt: string, systemPrompt?: string): Promise<string> {
+    const url = 'https://router.huggingface.co/v1/chat/completions';
+    
+    const messages = [];
+    if (systemPrompt) {
+      messages.push({ role: 'system', content: systemPrompt });
+    }
+    messages.push({ role: 'user', content: prompt });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.hfToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'google/gemma-2-2b-it',
+        messages,
+        max_tokens: 1000,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HuggingFace error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || 'No response';
+  }
+
+  // Smart fallback: Try all providers
+  async generateContent(prompt: string, systemPrompt?: string): Promise<string> {
+    if (!this.isConfigured()) {
+      throw new Error('No AI provider configured');
+    }
+
+    const providers = [
+      { name: 'Mistral', fn: () => this.generateContentMistral(prompt, systemPrompt), enabled: !!this.mistralKey },
+      { name: 'HuggingFace', fn: () => this.generateContentHF(prompt, systemPrompt), enabled: !!this.hfToken }
+    ];
+
+    for (const provider of providers) {
+      if (!provider.enabled) continue;
+      
+      try {
+        console.log(`🤖 Using ${provider.name}...`);
+        return await provider.fn();
+      } catch (error: any) {
+        console.warn(`⚠️ ${provider.name} failed:`, error.message);
+      }
+    }
+
+    throw new Error('All AI providers failed');
+  }
+
+  // ============ EMBEDDINGS (Mistral) ============
+
+  async generateEmbeddings(texts: string[]): Promise<number[][]> {
+    if (!this.mistralKey) {
+      throw new Error('Mistral API key required for embeddings');
+    }
+
+    const url = 'https://api.mistral.ai/v1/embeddings';
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.mistralKey}`
+      },
+      body: JSON.stringify({
+        model: 'mistral-embed',
+        input: texts
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Embeddings error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data.map((item: any) => item.embedding);
+  }
+
+  // ============ CODE EMBEDDINGS (HuggingFace) ============
+
+  async generateCodeEmbeddings(code: string[]): Promise<number[][]> {
+    if (!this.hfToken) {
+      throw new Error('HuggingFace token required for code embeddings');
+    }
+
+    const url = 'https://api-inference.huggingface.co/models/microsoft/codebert-base';
+    
+    const embeddings = [];
+    for (const snippet of code) {
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          generationConfig: {
-            temperature: YBOT_CHARACTER.settings.temperature,
-            maxOutputTokens: YBOT_CHARACTER.settings.maxTokens,
-          }
-        })
+        headers: {
+          'Authorization': `Bearer ${this.hfToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ inputs: snippet })
       });
 
-      if (!response.ok) {
-        const error = await response.text();
-        console.error('Gemini API error:', error);
-        throw new Error(`Gemini API error: ${response.status}`);
+      if (response.ok) {
+        const data = await response.json();
+        embeddings.push(data);
       }
+    }
+    
+    return embeddings;
+  }
 
-      const data = await response.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated';
+  // ============ WEB SCRAPING (Hyperbrowser) ============
+
+  async scrapeWebPage(url: string): Promise<{ title: string; content: string; links: string[] }> {
+    if (!this.hyperBrowserKey) {
+      throw new Error('Hyperbrowser API key required for web scraping');
+    }
+
+    const apiUrl = 'https://api.hyperbrowser.ai/api/session';
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.hyperBrowserKey
+      },
+      body: JSON.stringify({
+        useStealth: true
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Hyperbrowser error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      title: data.title || '',
+      content: data.content || '',
+      links: data.links || []
+    };
+  }
+
+  // ============ LIVE DATA ENRICHMENT ============
+
+  async enrichWithLiveData(query: string): Promise<string> {
+    // Use Hyperbrowser to fetch live DeFi data
+    if (!this.hyperBrowserKey) {
+      return query; // Return original if no scraping available
+    }
+
+    try {
+      // Scrape live BSC data
+      const bscData = await this.scrapeWebPage('https://bscscan.com/');
+      const defiData = await this.scrapeWebPage('https://defillama.com/chain/BSC');
+      
+      return `${query}\n\nLive Market Data:\n- BSC Network: ${bscData.title}\n- DeFi TVL: ${defiData.content.slice(0, 200)}...`;
     } catch (error) {
-      console.error('Error calling Gemini:', error);
-      throw error;
+      console.warn('Live data enrichment failed:', error);
+      return query;
+    }
+  }
+
+  // ============ SEMANTIC SEARCH ============
+
+  cosineSimilarity(a: number[], b: number[]): number {
+    const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
+    const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+    const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+    return dotProduct / (magnitudeA * magnitudeB);
+  }
+
+  async semanticSearch(query: string, documents: string[], topK: number = 3): Promise<Array<{text: string; score: number; index: number}>> {
+    const allTexts = [query, ...documents];
+    const embeddings = await this.generateEmbeddings(allTexts);
+    
+    const queryEmbedding = embeddings[0];
+    const docEmbeddings = embeddings.slice(1);
+    
+    const results = documents.map((text, index) => ({
+      text,
+      score: this.cosineSimilarity(queryEmbedding, docEmbeddings[index]),
+      index
+    }));
+    
+    return results.sort((a, b) => b.score - a.score).slice(0, topK);
+  }
+
+  // ============ CODE SEARCH ============
+
+  async codeSearch(query: string, codeSnippets: string[], topK: number = 3): Promise<Array<{code: string; score: number; index: number}>> {
+    try {
+      const queryEmbed = await this.generateCodeEmbeddings([query]);
+      const codeEmbeds = await this.generateCodeEmbeddings(codeSnippets);
+      
+      const results = codeSnippets.map((code, index) => ({
+        code,
+        score: this.cosineSimilarity(queryEmbed[0], codeEmbeds[index]),
+        index
+      }));
+      
+      return results.sort((a, b) => b.score - a.score).slice(0, topK);
+    } catch (error) {
+      console.warn('Code search failed, using text search fallback');
+      // Fallback to text embeddings
+      return await this.semanticSearch(query, codeSnippets, topK) as any;
     }
   }
 
@@ -440,8 +636,16 @@ Respond as YBOT - be specific, confident, and actionable. Reference actual numbe
       }
       
       return { response, pendingAction };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
+      
+      // User-friendly error messages
+      if (error.message?.includes('quota exceeded')) {
+        return { 
+          response: "🚨 **API Quota Exceeded**\n\nMy AI brain ran out of free credits. To fix:\n\n1. Get a new API key from Mistral, HuggingFace, or MuleRouter\n2. Update your API keys in `.env.local`\n3. Restart the dev server\n\nOr wait 24 hours for quota reset." 
+        };
+      }
+      
       return { 
         response: "⚠️ I hit a snag connecting to my brain. Give me a sec and try again?" 
       };
@@ -464,7 +668,7 @@ Respond as YBOT - be specific, confident, and actionable. Reference actual numbe
 
 export class YBOTAIAgent {
   private config: AIAgentConfig;
-  private gemini: GeminiAI;
+  private ai: MultiProviderAI;
   private chatHistory: ChatMessage[] = [];
   private lastDecisions: AIDecision[] = [];
   private isRunning = false;
@@ -474,9 +678,9 @@ export class YBOTAIAgent {
   private lastYieldFetch: number = 0;
   private pendingAction: AIDecision | null = null;
 
-  constructor(config: AIAgentConfig, apiKey: string) {
+  constructor(config: AIAgentConfig) {
     this.config = config;
-    this.gemini = new GeminiAI(apiKey);
+    this.ai = new MultiProviderAI();
   }
 
   // Get agent status
@@ -507,6 +711,95 @@ export class YBOTAIAgent {
     const action = this.pendingAction;
     this.pendingAction = null;
     return action;
+  }
+
+  // ============ EXECUTION ENGINE ============
+  
+  /**
+   * Execute a stake transaction
+   * User-triggered: AI suggests, user confirms, this executes
+   */
+  async executeStake(amount: string, tierIndex: number = 0): Promise<string> {
+    try {
+      const { stakeYBOT, LOCK_TIERS } = await import('./stakingService');
+      
+      // Map tier index to lock duration
+      const lockDurations = [LOCK_TIERS.FLEXIBLE, LOCK_TIERS.DAYS_7, LOCK_TIERS.DAYS_30, LOCK_TIERS.DAYS_90];
+      const lockDuration = lockDurations[tierIndex] || LOCK_TIERS.FLEXIBLE;
+      
+      // Execute stake via staking service
+      const txHash = await stakeYBOT(amount, lockDuration);
+      
+      // Log successful trade
+      console.log(`✅ Staked ${amount} YBOT in tier ${tierIndex}`);
+      
+      // Clear pending action
+      this.clearPendingAction();
+      
+      return txHash;
+    } catch (error) {
+      console.error('Stake execution failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Execute a vault deposit
+   * User-triggered: AI suggests, user confirms, this executes
+   */
+  async executeVaultDeposit(amount: string): Promise<string> {
+    try {
+      const { investInVault } = await import('./web3Service');
+      
+      // Execute deposit via web3 service
+      const txHash = await investInVault(amount);
+      
+      console.log(`✅ Deposited ${amount} USDT to vault`);
+      
+      this.clearPendingAction();
+      
+      return txHash;
+    } catch (error) {
+      console.error('Vault deposit failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Execute any pending action
+   * This is the main execution entry point
+   */
+  async executePendingAction(): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.pendingAction) {
+      return { success: false, error: 'No pending action' };
+    }
+
+    try {
+      let txHash: string;
+
+      switch (this.pendingAction.action) {
+        case 'stake':
+          if (!this.pendingAction.amount) {
+            throw new Error('Amount required for staking');
+          }
+          txHash = await this.executeStake(this.pendingAction.amount.toString());
+          break;
+
+        case 'deposit':
+          if (!this.pendingAction.amount) {
+            throw new Error('Amount required for deposit');
+          }
+          txHash = await this.executeVaultDeposit(this.pendingAction.amount.toString());
+          break;
+
+        default:
+          throw new Error(`Action ${this.pendingAction.action} not yet implemented`);
+      }
+
+      return { success: true, txHash };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
   }
 
   // Subscribe to updates
@@ -577,7 +870,7 @@ export class YBOTAIAgent {
       };
 
       // Get AI decisions with wallet context
-      this.lastDecisions = await this.gemini.analyzeYieldOpportunities(
+      this.lastDecisions = await this.ai.analyzeYieldOpportunities(
         allStrategies,
         currentPortfolio,
         this.config.riskTolerance,
@@ -629,7 +922,7 @@ export class YBOTAIAgent {
       }
       
       // Call AI with full context including staking
-      const { response, pendingAction } = await this.gemini.chat(
+      const { response, pendingAction } = await this.ai.chat(
         message, 
         this.chatHistory, 
         currentPortfolio,
@@ -681,12 +974,9 @@ export class YBOTAIAgent {
 
 class AIAgentManager {
   private agents: Map<string, YBOTAIAgent> = new Map();
-  private apiKey: string = '';
 
-  // Initialize with API key
-  init(apiKey: string) {
-    this.apiKey = apiKey;
-    
+  // Initialize with default agents
+  init() {
     // Create default agents
     this.createAgent({
       name: 'YBOT Yield Hunter',
@@ -707,7 +997,7 @@ class AIAgentManager {
 
   // Create new agent
   createAgent(config: AIAgentConfig): YBOTAIAgent {
-    const agent = new YBOTAIAgent(config, this.apiKey);
+    const agent = new YBOTAIAgent(config);
     this.agents.set(config.name, agent);
     return agent;
   }
@@ -736,18 +1026,8 @@ class AIAgentManager {
 // Export singleton
 export const aiAgentManager = new AIAgentManager();
 
-// Export function to initialize with API key
-export function initializeAIAgents(apiKey?: string) {
-  // Check for ElizaOS standard naming first, then Vite naming
-  const key = apiKey || 
-    import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY || 
-    import.meta.env.VITE_GEMINI_API_KEY || 
-    '';
-  if (!key) {
-    console.warn('⚠️ No Google AI API key found. AI features will be limited.');
-    console.warn('Set VITE_GOOGLE_GENERATIVE_AI_API_KEY in .env.local');
-    return;
-  }
-  aiAgentManager.init(key);
-  console.log('✅ AI Agents initialized with Google Gemini');
+// Export function to initialize AI agents
+export function initializeAIAgents() {
+  aiAgentManager.init();
+  console.log('✅ AI Agents initialized with Mistral + HuggingFace');
 }
