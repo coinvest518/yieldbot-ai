@@ -10,9 +10,12 @@ import Roadmap from './components/Roadmap';
 import Footer from './components/Footer';
 import YieldStrategyDashboard from './components/YieldStrategyDashboard';
 import ApiTester from './components/ApiTester';
+import ClaimCodeModal from './components/ClaimCodeModal';
+import ReferralCodeModal from './components/ReferralCodeModal';
 import AIAgentsPage from './pages/AIAgentsPage';
 import FundraiserPage from './pages/FundraiserPage';
 import StakingPage from './pages/StakingPage';
+import ClaimCodePage from './pages/ClaimCodePage';
 import LiveTicker from './components/LiveTicker';
 import { clearWalletConnection } from './services/web3Service';
 import { useAccount } from 'wagmi';
@@ -28,6 +31,11 @@ const HomePage: React.FC = () => {
       <main>
         <Hero />
         <Dashboard />
+        
+        {/* Referral Code Button - Fixed Position */}
+        <div className="fixed bottom-20 right-4 z-40">
+          <ReferralCodeModal />
+        </div>
         
         {/* Yield Strategies Section */}
         <section id="yield-strategies" className="py-16 px-4 md:px-8 lg:px-16">
@@ -66,18 +74,20 @@ const HomePage: React.FC = () => {
             {/* Yield Strategy Dashboard */}
             <YieldStrategyDashboard investmentAmount={investmentAmount} />
             
-            {/* API Tester Toggle */}
-            <div className="mt-8 text-center">
-              <button
-                onClick={() => setShowApiTester(!showApiTester)}
-                className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm transition-all"
-              >
-                {showApiTester ? '🔼 Hide API Tester' : '🔧 Show API Connection Tester'}
-              </button>
-            </div>
+            {/* API Tester Toggle - Only show in development */}
+            {import.meta.env.DEV && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => setShowApiTester(!showApiTester)}
+                  className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm transition-all"
+                >
+                  {showApiTester ? '🔼 Hide API Tester' : '🔧 Show API Connection Tester'}
+                </button>
+              </div>
+            )}
             
-            {/* API Tester (collapsible) */}
-            {showApiTester && (
+            {/* API Tester (collapsible) - Only in development */}
+            {showApiTester && import.meta.env.DEV && (
               <div className="mt-6">
                 <ApiTester />
               </div>
@@ -114,6 +124,7 @@ const App: React.FC = () => {
           <Route path="/ai-agents" element={<AIAgentsPage />} />
           <Route path="/fundraiser" element={<FundraiserPage />} />
           <Route path="/staking" element={<StakingPage />} />
+          <Route path="/claim" element={<ClaimCodePage />} />
         </Routes>
         <Analytics />
         {/* User Feedback Button */}
