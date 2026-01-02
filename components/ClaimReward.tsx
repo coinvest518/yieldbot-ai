@@ -54,7 +54,7 @@ export default function ClaimReward() {
         signer
       );
 
-      const claimCodeBytes = ethers.id(email);
+      const claimCodeBytes = ethers.id(email.toLowerCase());
       const tx = await contract.claim(claimCodeBytes, userAddress);
       await tx.wait();
 
