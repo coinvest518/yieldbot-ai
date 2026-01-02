@@ -47,6 +47,9 @@ export const uploadMetadataToPinata = async (metadataJSON: object): Promise<stri
   }
 };
 
+// Alias for compatibility
+export const pinJSONToIPFS = uploadMetadataToPinata;
+
 export const base64ToBlob = (base64: string, mimeType: string = 'image/png'): Blob => {
   const parts = base64.split(',');
   const bstr = atob(parts[parts.length - 1]);
