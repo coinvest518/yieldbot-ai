@@ -15,14 +15,17 @@ export const fetchWinnersFromPinata = async (): Promise<Winner[]> => {
   const lines = csv.trim().split('\n');
   const winners: Winner[] = [];
   
+  // CSV format: Rank,Name,Social Media/Tag,Email,Location,Date
   for (let i = 1; i < lines.length; i++) {
-    const [email, name, ranking] = lines[i].split(',').map(s => s.trim());
-    if (email) {
-      winners.push({
-        email,
-        name,
-        ranking: parseInt(ranking) || 0,
-      });
+    const parts = lines[i].split(',');
+    if (parts.length >= 4) {
+      const ranking = parseInt(parts[0]) || 0;
+      const name = parts[1]?.trim() || '';
+      const email = parts[3]?.trim() || '';
+      
+      if (email) {
+        winners.push({ email, name, ranking });
+      }
     }
   }
   
